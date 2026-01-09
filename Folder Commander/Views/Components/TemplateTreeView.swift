@@ -17,25 +17,39 @@ struct TemplateTreeView: View {
                 if let children = item.children, !children.isEmpty {
                     ForEach(children) { child in
                         TemplateTreeView(item: child)
-                            .padding(.leading, 16)
+                            .padding(.leading, AppSpacing.lg)
                     }
                 }
             } label: {
-                HStack {
-                    Image(systemName: "folder.fill")
-                        .foregroundColor(.blue)
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: isExpanded ? "folder.fill" : "folder")
+                        .foregroundStyle(AppColors.primaryGradient)
+                        .font(.system(size: 16, weight: .medium))
+                    
                     Text(item.name)
-                        .font(.system(size: 13))
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.textPrimary)
                 }
+                .padding(.vertical, AppSpacing.xs)
             }
         } else {
-            HStack {
+            HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "doc.fill")
-                    .foregroundColor(.gray)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppColors.textSecondary, AppColors.textTertiary],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .font(.system(size: 16, weight: .medium))
+                
                 Text(item.name)
-                    .font(.system(size: 13))
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.textPrimary)
             }
-            .padding(.leading, 16)
+            .padding(.leading, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.xs)
         }
     }
 }

@@ -15,85 +15,173 @@ struct MainView: View {
     @State private var showingImport = false
     @State private var editingTemplate: Template?
     @State private var selectedTemplate: Template?
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
     
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            // First Column: Navigation/Actions
             VStack(spacing: 0) {
-                // Header with action buttons
-                HStack {
+                // Action buttons - stacked vertically
+                VStack(spacing: AppSpacing.md) {
                     Button(action: { showingNewTemplate = true }) {
-                        Label("New Template", systemImage: "plus.circle.fill")
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "plus.circle.fill")
+                            Text("New Template")
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .primaryButton()
                     
                     Button(action: { showingCreateProject = true }) {
-                        Label("Create Project", systemImage: "folder.badge.plus")
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "folder.badge.plus")
+                            Text("Create Project")
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
+                    .secondaryButton(enabled: !templateStore.templates.isEmpty)
                     .disabled(templateStore.templates.isEmpty)
                     
                     Button(action: { showingImport = true }) {
-                        Label("Import", systemImage: "square.and.arrow.down")
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "square.and.arrow.down")
+                            Text("Import")
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
-                    
-                    Spacer()
+                    .secondaryButton()
                 }
-                .padding()
-                .background(Color(NSColor.controlBackgroundColor))
+                .padding(AppSpacing.lg)
+                .background(
+                    Rectangle()
+                        .fill(AppColors.secondaryBackground)
+                        .overlay(
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [AppColors.primary.opacity(0.05), Color.clear],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                        )
+                )
                 
                 Divider()
+                    .background(AppColors.border)
                 
-                // Template list
-                if templateStore.templates.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "folder.badge.questionmark")
-                            .font(.system(size: 64))
-                            .foregroundColor(.secondary)
-                        Text("No Templates")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                        Text("Create your first template to get started")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Button("New Template") {
-                            showingNewTemplate = true
+                Spacer()
+            }
+            .background(AppColors.background)
+            .frame(minWidth: 180)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        withAnimation {
+                            // Toggle navigation column: hide it if all visible, show it if hidden
+                            if columnVisibility == .all {
+                                columnVisibility = .doubleColumn
+                            } else {
+                                columnVisibility = .all
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
+                    }) {
+                        Image(systemName: columnVisibility == .all ? "sidebar.left" : "sidebar.squares.left")
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List(selection: $selectedTemplate) {
-                        ForEach(templateStore.templates) { template in
-                            TemplateRowView(template: template)
-                                .tag(template)
-                                .contextMenu {
-                                    Button("Edit") {
-                                        editingTemplate = template
-                                    }
-                                    Button("Export") {
-                                        exportTemplate(template)
-                                    }
-                                    Divider()
-                                    Button("Delete", role: .destructive) {
-                                        templateStore.deleteTemplate(template)
-                                    }
+                    .help("Toggle Navigation")
+                }
+            }
+        } content: {
+            // Second Column: Template List
+            NavigationStack {
+                Group {
+                    if templateStore.templates.isEmpty {
+                        VStack(spacing: AppSpacing.lg) {
+                            ZStack {
+                                Circle()
+                                    .fill(AppColors.primaryGradient.opacity(0.1))
+                                    .frame(width: 120, height: 120)
+                                
+                                Image(systemName: "folder.badge.questionmark")
+                                    .font(.system(size: 56, weight: .light))
+                                    .foregroundStyle(AppColors.primaryGradient)
+                            }
+                            
+                            VStack(spacing: AppSpacing.sm) {
+                                Text("No Templates")
+                                    .font(AppTypography.title2)
+                                    .foregroundColor(AppColors.textPrimary)
+                                
+                                Text("Create your first template to get started")
+                                    .font(AppTypography.subheadline)
+                                    .foregroundColor(AppColors.textSecondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            
+                            Button(action: { showingNewTemplate = true }) {
+                                HStack(spacing: AppSpacing.sm) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("New Template")
                                 }
+                            }
+                            .primaryButton()
                         }
-                        .onDelete { indexSet in
-                            templateStore.deleteTemplate(at: indexSet)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(AppSpacing.xl)
+                        .background(AppColors.background)
+                    } else {
+                        List(selection: $selectedTemplate) {
+                            ForEach(templateStore.templates) { template in
+                                TemplateRowView(template: template)
+                                    .tag(template)
+                                    .listRowBackground(
+                                        selectedTemplate?.id == template.id
+                                            ? AppColors.primary.opacity(0.1)
+                                            : Color.clear
+                                    )
+                                    .contextMenu {
+                                        Button(action: { editingTemplate = template }) {
+                                            Label("Edit", systemImage: "pencil")
+                                        }
+                                        Button(action: { exportTemplate(template) }) {
+                                            Label("Export", systemImage: "square.and.arrow.up")
+                                        }
+                                        Divider()
+                                        Button(role: .destructive, action: { templateStore.deleteTemplate(template) }) {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
+                            }
+                            .onDelete { indexSet in
+                                templateStore.deleteTemplate(at: indexSet)
+                            }
                         }
+                        .listStyle(.sidebar)
+                        .scrollContentBackground(.hidden)
+                        .background(AppColors.background)
                     }
-                    .listStyle(.sidebar)
                 }
             }
         } detail: {
-            if let template = selectedTemplate {
-                TemplateDetailView(template: template)
-            } else {
-                Text("Select a template to preview")
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Third Column: Template Preview
+            NavigationStack {
+                Group {
+                    if let template = selectedTemplate {
+                        TemplateDetailView(template: template)
+                    } else {
+                        VStack(spacing: AppSpacing.lg) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 64, weight: .ultraLight))
+                                .foregroundStyle(AppColors.primaryGradient.opacity(0.5))
+                            
+                            Text("Select a template to preview")
+                                .font(AppTypography.title3)
+                                .foregroundColor(AppColors.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(AppColors.background)
+                    }
+                }
             }
         }
         .sheet(isPresented: $showingNewTemplate) {
@@ -146,15 +234,47 @@ struct MainView: View {
 struct TemplateRowView: View {
     let template: Template
     
+    private var itemCount: Int {
+        template.rootItem.getAllItems().count
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(template.name)
-                .font(.headline)
-            Text("Modified: \(template.modifiedDate, style: .date)")
-                .font(.caption)
-                .foregroundColor(.secondary)
+        HStack(spacing: AppSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AppCornerRadius.small)
+                    .fill(AppColors.primaryGradient.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: "folder.fill")
+                    .foregroundStyle(AppColors.primaryGradient)
+                    .font(.system(size: 18))
+            }
+            
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text(template.name)
+                    .font(AppTypography.headline)
+                    .foregroundColor(AppColors.textPrimary)
+                
+                HStack(spacing: AppSpacing.sm) {
+                    Text(template.modifiedDate, style: .date)
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.textSecondary)
+                    
+                    if itemCount > 0 {
+                        Text("•")
+                            .foregroundColor(AppColors.textTertiary)
+                        
+                        Text("\(itemCount) items")
+                            .font(AppTypography.caption)
+                            .foregroundColor(AppColors.textSecondary)
+                    }
+                }
+            }
+            
+            Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, AppSpacing.sm)
+        .contentShape(Rectangle())
     }
 }
 
@@ -163,42 +283,89 @@ struct TemplateDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(template.name)
-                        .font(.largeTitle)
-                        .bold()
-                    
-                    Text("Created: \(template.createdDate, style: .date)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("Modified: \(template.modifiedDate, style: .date)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                
-                Divider()
-                
-                Text("Structure Preview")
-                    .font(.headline)
-                    .padding(.horizontal)
-                
-                // Show children of rootItem directly, not rootItem itself
-                if let children = template.rootItem.children, !children.isEmpty {
-                    ForEach(children) { child in
-                        TemplateTreeView(item: child)
-                            .padding(.horizontal)
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                // Header Card
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack(alignment: .top, spacing: AppSpacing.md) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                .fill(AppColors.primaryGradient.opacity(0.2))
+                                .frame(width: 64, height: 64)
+                            
+                            Image(systemName: "folder.fill")
+                                .font(.system(size: 32))
+                                .foregroundStyle(AppColors.primaryGradient)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                            Text(template.name)
+                                .font(AppTypography.largeTitle)
+                                .foregroundColor(AppColors.textPrimary)
+                            
+                            HStack(spacing: AppSpacing.md) {
+                                Text(template.createdDate, style: .date)
+                                    .font(AppTypography.subheadline)
+                                    .foregroundColor(AppColors.textSecondary)
+                                
+                                Text("•")
+                                    .foregroundColor(AppColors.textTertiary)
+                                
+                                Text(template.modifiedDate, style: .date)
+                                    .font(AppTypography.subheadline)
+                                    .foregroundColor(AppColors.textSecondary)
+                            }
+                        }
+                        
+                        Spacer()
                     }
-                } else {
-                    Text("No structure defined")
-                        .foregroundColor(.secondary)
-                        .padding()
+                }
+                .padding(AppSpacing.lg)
+                .cardStyle()
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.lg)
+                
+                // Structure Preview
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "list.bullet.rectangle")
+                            .foregroundStyle(AppColors.primaryGradient)
+                            .font(.system(size: 18))
+                        
+                        Text("Structure Preview")
+                            .font(AppTypography.title3)
+                            .foregroundColor(AppColors.textPrimary)
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    
+                    // Show children of rootItem directly, not rootItem itself
+                    if let children = template.rootItem.children, !children.isEmpty {
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            ForEach(children) { child in
+                                TemplateTreeView(item: child)
+                                    .padding(.horizontal, AppSpacing.lg)
+                            }
+                        }
+                    } else {
+                        HStack {
+                            Spacer()
+                            VStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "folder.badge.minus")
+                                    .font(.system(size: 48, weight: .ultraLight))
+                                    .foregroundStyle(AppColors.textTertiary)
+                                
+                                Text("No structure defined")
+                                    .font(AppTypography.subheadline)
+                                    .foregroundColor(AppColors.textSecondary)
+                            }
+                            .padding(AppSpacing.xl)
+                            Spacer()
+                        }
+                    }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(AppColors.background)
     }
 }
 
