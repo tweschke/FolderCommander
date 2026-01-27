@@ -51,7 +51,11 @@ struct SettingsView: View {
                     
                     Picker("Theme", selection: Binding(
                         get: { settings.themePreference },
-                        set: { settings.setThemePreference($0) }
+                        set: { preference in
+                            Task { @MainActor in
+                                settings.setThemePreference(preference)
+                            }
+                        }
                     )) {
                         ForEach(ThemePreference.allCases) { preference in
                             Label(preference.label, systemImage: iconName(for: preference))
@@ -104,7 +108,11 @@ struct SettingsView: View {
                             
                             Toggle("", isOn: Binding(
                                 get: { settings.customColorsEnabled },
-                                set: { settings.setCustomColorsEnabled($0) }
+                                set: { enabled in
+                                    Task { @MainActor in
+                                        settings.setCustomColorsEnabled(enabled)
+                                    }
+                                }
                             ))
                             .toggleStyle(.switch)
                             .tint(AppColors.accent)
@@ -133,7 +141,11 @@ struct SettingsView: View {
                                 FolderColorPicker(
                                     selectedColorHex: Binding(
                                         get: { settings.defaultFolderColor },
-                                        set: { settings.setDefaultFolderColor($0) }
+                                        set: { color in
+                                            Task { @MainActor in
+                                                settings.setDefaultFolderColor(color)
+                                            }
+                                        }
                                     ),
                                     defaultColorHex: nil
                                 )

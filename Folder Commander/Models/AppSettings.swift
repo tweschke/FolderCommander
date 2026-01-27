@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import AppKit
 
 enum ThemePreference: String, CaseIterable, Codable, Identifiable {
     case light
@@ -34,6 +35,7 @@ class AppSettings: ObservableObject {
     
     init() {
         loadSettings()
+        applyAppearance(themePreference)
     }
     
     var preferredColorScheme: ColorScheme? {
@@ -80,7 +82,33 @@ class AppSettings: ObservableObject {
 
     func setThemePreference(_ preference: ThemePreference) {
         themePreference = preference
+        applyAppearance(preference)
         saveSettings()
+    }
+
+    private func applyAppearance(_ preference: ThemePreference) {
+        let updateAppearance = {
+            let appearance: NSAppearance?
+            switch preference {
+            case .light:
+                appearance = NSAppearance(named: .aqua)
+            case .dark:
+                appearance = NSAppearance(named: .darkAqua)
+            case .system:
+                appearance = nil
+            }
+
+            NSApp.appearance = appearance
+            for window in NSApp.windows {
+                window.appearance = appearance
+            }
+        }
+
+        if Thread.isMainThread {
+            updateAppearance()
+        } else {
+            DispatchQueue.main.async(execute: updateAppearance)
+        }
     }
 }
 

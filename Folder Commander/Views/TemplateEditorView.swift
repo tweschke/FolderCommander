@@ -564,9 +564,12 @@ struct TextEditorView: View {
         }
         .background(AppColors.contentGradient)
         .onChange(of: textInput) { _, newValue in
-            // Try to parse and update rootItem in real-time
-            if let parsed = try? TemplateParser.parse(newValue) {
-                rootItem = parsed
+            // Defer the update to avoid publishing changes during view updates
+            Task { @MainActor in
+                // Try to parse and update rootItem in real-time
+                if let parsed = try? TemplateParser.parse(newValue) {
+                    rootItem = parsed
+                }
             }
         }
     }

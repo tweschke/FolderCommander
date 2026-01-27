@@ -14,7 +14,6 @@ struct Folder_CommanderApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(appSettings: appSettings)
-                .preferredColorScheme(appSettings.preferredColorScheme)
         }
         .defaultSize(width: 1400, height: 900)
     }
