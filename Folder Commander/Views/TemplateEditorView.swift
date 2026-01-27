@@ -55,6 +55,7 @@ struct TemplateEditorView: View {
                     TextField("Enter template name", text: $templateName)
                         .textFieldStyle(.plain)
                         .font(AppTypography.title3)
+                        .foregroundColor(AppColors.textPrimary)
                         .padding(AppSpacing.md)
                         .background(
                             RoundedRectangle(cornerRadius: AppCornerRadius.medium)
@@ -62,15 +63,25 @@ struct TemplateEditorView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: AppCornerRadius.medium)
                                         .stroke(
-                                            templateName.isEmpty ? AppColors.border : AppColors.primary.opacity(0.5),
+                                            templateName.isEmpty 
+                                                ? AppColors.border 
+                                                : AppColors.accent.opacity(0.5),
                                             lineWidth: 2
                                         )
                                 )
                         )
+                        .shadow(
+                            color: templateName.isEmpty 
+                                ? Color.clear 
+                                : AppColors.accent.opacity(0.1),
+                            radius: 4,
+                            x: 0,
+                            y: 2
+                        )
                         .appShadow(AppShadow.small)
                 }
                 .padding(AppSpacing.lg)
-                .background(AppColors.secondaryBackground)
+                .background(AppColors.background)
                 
                 Divider()
                     .background(AppColors.border)
@@ -81,9 +92,10 @@ struct TemplateEditorView: View {
                     Label("Text Input", systemImage: "text.alignleft").tag(EditorMode.text)
                 }
                 .pickerStyle(.segmented)
+                .tint(AppColors.accent)
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.vertical, AppSpacing.md)
-                .background(AppColors.secondaryBackground)
+                .background(AppColors.background)
                 
                 Divider()
                     .background(AppColors.border)
@@ -100,7 +112,7 @@ struct TemplateEditorView: View {
                     TextEditorView(textInput: $textInput, rootItem: $rootItem)
                 }
             }
-            .background(AppColors.background)
+            .background(AppColors.contentGradient)
             .navigationTitle(editingTemplate == nil ? "New Template" : "Edit Template")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -232,8 +244,10 @@ struct VisualEditorView: View {
                 .padding()
             }
             .frame(maxWidth: .infinity)
+            .background(AppColors.contentGradient)
             
             Divider()
+                .background(AppColors.border)
             
             // Action buttons
             VStack(spacing: AppSpacing.md) {
@@ -250,9 +264,9 @@ struct VisualEditorView: View {
                         Image(systemName: "plus.circle.fill")
                         Text(selectedItem?.type == .folder ? "Add Child" : "Add Item")
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 .primaryButton()
-                .frame(maxWidth: .infinity)
                 
                 Button(action: {
                     if let selected = selectedItem {
@@ -264,10 +278,10 @@ struct VisualEditorView: View {
                         Image(systemName: "minus.circle.fill")
                         Text("Delete Selected")
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 .destructiveButton(enabled: selectedItem != nil)
                 .disabled(selectedItem == nil)
-                .frame(maxWidth: .infinity)
                 
                 Spacer()
                 
@@ -277,7 +291,7 @@ struct VisualEditorView: View {
                         HStack(spacing: AppSpacing.sm) {
                             Image(systemName: selected.type == .folder ? "folder.fill" : "doc.fill")
                                 .foregroundStyle(selected.type == .folder ? AppColors.primaryGradient : LinearGradient(colors: [AppColors.textSecondary, AppColors.textTertiary], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .font(.system(size: 16))
+                                .font(.system(size: 18, weight: .semibold))
                             
                             Text("Selected")
                                 .font(AppTypography.caption)
@@ -294,13 +308,14 @@ struct VisualEditorView: View {
                     }
                     .padding(AppSpacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cardStyle()
+                    .glassCardStyle()
                 }
             }
             .padding(AppSpacing.lg)
             .frame(width: 220)
-            .background(AppColors.secondaryBackground)
+            .background(AppColors.background)
         }
+        .background(AppColors.contentGradient)
     }
     
     private func addItem(to parent: FolderItem) {
@@ -365,21 +380,28 @@ struct EditableTreeView: View {
                         .padding(.leading, 16)
                     }
                 }
-            }             label: {
+            } label: {
                 HStack(spacing: AppSpacing.sm) {
                     Image(systemName: isExpanded ? "folder.fill" : "folder")
                         .foregroundStyle(AppColors.primaryGradient)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 18, weight: .semibold))
                     
                     Text(item.name)
                         .font(AppTypography.body)
                         .foregroundColor(AppColors.textPrimary)
                 }
-                .padding(.vertical, AppSpacing.xs)
-                .padding(.horizontal, AppSpacing.xs)
+                .padding(.vertical, AppSpacing.sm)
+                .padding(.horizontal, AppSpacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                        .fill(selectedItem?.id == item.id ? AppColors.primary.opacity(0.15) : Color.clear)
+                        .fill(selectedItem?.id == item.id ? AnyShapeStyle(AppColors.selectedGlowGradient) : AnyShapeStyle(Color.clear))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppCornerRadius.small)
+                                .stroke(
+                                    selectedItem?.id == item.id ? AppColors.accent.opacity(0.3) : Color.clear,
+                                    lineWidth: 1
+                                )
+                        )
                 )
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -410,28 +432,39 @@ struct EditableTreeView: View {
                     }
                 }
             }
+            .tint(AppColors.textPrimary)
         } else {
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "doc.fill")
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [AppColors.textSecondary, AppColors.textTertiary],
+                            colors: [
+                                AppColors.textPrimary.opacity(0.8),
+                                AppColors.textSecondary.opacity(0.9)
+                            ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 18, weight: .semibold))
                 
                 Text(item.name)
                     .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
             }
             .padding(.leading, AppSpacing.lg)
-            .padding(.vertical, AppSpacing.xs)
-            .padding(.horizontal, AppSpacing.xs)
+            .padding(.vertical, AppSpacing.sm)
+            .padding(.horizontal, AppSpacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                    .fill(selectedItem?.id == item.id ? AppColors.primary.opacity(0.15) : Color.clear)
+                    .fill(selectedItem?.id == item.id ? AnyShapeStyle(AppColors.selectedGlowGradient) : AnyShapeStyle(Color.clear))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppCornerRadius.small)
+                            .stroke(
+                                selectedItem?.id == item.id ? AppColors.accent.opacity(0.3) : Color.clear,
+                                lineWidth: 1
+                            )
+                    )
             )
             .contentShape(Rectangle())
             .onTapGesture {
@@ -515,7 +548,7 @@ struct TextEditorView: View {
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.bottom, AppSpacing.md)
         }
-        .background(AppColors.background)
+        .background(AppColors.contentGradient)
         .onChange(of: textInput) { _, newValue in
             // Try to parse and update rootItem in real-time
             if let parsed = try? TemplateParser.parse(newValue) {
@@ -555,6 +588,7 @@ struct ItemEditorView: View {
                     TextField("Item name", text: $name)
                         .textFieldStyle(.plain)
                         .font(AppTypography.body)
+                        .foregroundColor(AppColors.textPrimary)
                         .padding(AppSpacing.md)
                         .background(
                             RoundedRectangle(cornerRadius: AppCornerRadius.medium)
@@ -562,10 +596,20 @@ struct ItemEditorView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: AppCornerRadius.medium)
                                         .stroke(
-                                            name.isEmpty ? AppColors.border : AppColors.primary.opacity(0.5),
+                                            name.isEmpty 
+                                                ? AppColors.border 
+                                                : AppColors.accent.opacity(0.5),
                                             lineWidth: 2
                                         )
                                 )
+                        )
+                        .shadow(
+                            color: name.isEmpty 
+                                ? Color.clear 
+                                : AppColors.accent.opacity(0.1),
+                            radius: 4,
+                            x: 0,
+                            y: 2
                         )
                         .appShadow(AppShadow.small)
                 }
@@ -580,6 +624,7 @@ struct ItemEditorView: View {
                         Label("File", systemImage: "doc.fill").tag(ItemType.file)
                     }
                     .pickerStyle(.segmented)
+                    .tint(AppColors.accent)
                 }
                 
                 if type == .file {
@@ -606,7 +651,7 @@ struct ItemEditorView: View {
                 Spacer()
             }
             .padding(AppSpacing.lg)
-            .background(AppColors.background)
+            .background(AppColors.contentGradient)
             .navigationTitle("Edit Item")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

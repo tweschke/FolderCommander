@@ -20,7 +20,6 @@ struct ProjectCreationView: View {
     @State private var creationProgress: Double = 0
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var showingSuccess = false
     @State private var createdProjectURL: URL?
     
     private let fileSystemService = FileSystemService()
@@ -30,6 +29,7 @@ struct ProjectCreationView: View {
         case enterName = 1
         case selectLocation = 2
         case preview = 3
+        case confirmation = 4
         
         var title: String {
             switch self {
@@ -37,6 +37,7 @@ struct ProjectCreationView: View {
             case .enterName: return "Enter Project Name"
             case .selectLocation: return "Select Destination"
             case .preview: return "Preview"
+            case .confirmation: return "Success"
             }
         }
     }
@@ -72,20 +73,7 @@ struct ProjectCreationView: View {
                         .foregroundColor(AppColors.textPrimary)
                 }
                 .padding(.vertical, AppSpacing.lg)
-                .background(
-                    Rectangle()
-                        .fill(AppColors.secondaryBackground)
-                        .overlay(
-                            Rectangle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [AppColors.primary.opacity(0.05), Color.clear],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                        )
-                )
+                .background(AppColors.background)
                 
                 Divider()
                     .background(AppColors.border)
@@ -101,70 +89,105 @@ struct ProjectCreationView: View {
                         selectLocationView
                     case .preview:
                         previewView
+                    case .confirmation:
+                        confirmationView
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(AppSpacing.lg)
-                .background(AppColors.background)
+                .background(AppColors.contentGradient)
                 
                 Divider()
                     .background(AppColors.border)
                 
                 // Navigation buttons
-                HStack(spacing: AppSpacing.md) {
-                    if currentStep != .selectTemplate {
+                if currentStep == .confirmation {
+                    // Confirmation step buttons
+                    HStack(spacing: AppSpacing.md) {
+                        Spacer()
+                        
                         Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                goToPreviousStep()
+                            if let url = createdProjectURL {
+                                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
                             }
                         }) {
                             HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "chevron.left")
-                                Text("Back")
+                                Image(systemName: "folder.fill")
+                                Text("Show in Finder")
                             }
                         }
                         .secondaryButton()
-                    }
-                    
-                    Spacer()
-                    
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .tertiaryButton()
-                    
-                    if currentStep == .preview {
-                        Button(action: { createProject() }) {
-                            HStack(spacing: AppSpacing.sm) {
-                                if isCreating {
-                                    ProgressView()
-                                        .progressViewStyle(.circular)
-                                        .scaleEffect(0.8)
-                                } else {
-                                    Image(systemName: "checkmark.circle.fill")
-                                }
-                                Text("Create Project")
-                            }
-                        }
-                        .primaryButton(enabled: !isCreating && !projectName.isEmpty && destinationURL != nil)
-                        .disabled(isCreating || projectName.isEmpty || destinationURL == nil)
-                    } else {
+                        
                         Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                goToNextStep()
-                            }
+                            dismiss()
                         }) {
                             HStack(spacing: AppSpacing.sm) {
-                                Text("Next")
-                                Image(systemName: "chevron.right")
+                                Text("Done")
+                                Image(systemName: "checkmark.circle.fill")
                             }
                         }
-                        .primaryButton(enabled: canProceedToNextStep)
-                        .disabled(!canProceedToNextStep)
+                        .primaryButton()
                     }
+                    .padding(AppSpacing.lg)
+                    .background(AppColors.background)
+                } else {
+                    // Regular step buttons
+                    HStack(spacing: AppSpacing.md) {
+                        if currentStep != .selectTemplate {
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    goToPreviousStep()
+                                }
+                            }) {
+                                HStack(spacing: AppSpacing.sm) {
+                                    Image(systemName: "chevron.left")
+                                    Text("Back")
+                                }
+                            }
+                            .secondaryButton()
+                        }
+                        
+                        Spacer()
+                        
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .tertiaryButton()
+                        
+                        if currentStep == .preview {
+                            Button(action: { createProject() }) {
+                                HStack(spacing: AppSpacing.sm) {
+                                    if isCreating {
+                                        ProgressView()
+                                            .progressViewStyle(.circular)
+                                            .scaleEffect(0.8)
+                                            .tint(.white)
+                                    } else {
+                                        Image(systemName: "checkmark.circle.fill")
+                                    }
+                                    Text("Create Project")
+                                }
+                            }
+                            .primaryButton(enabled: !isCreating && !projectName.isEmpty && destinationURL != nil)
+                            .disabled(isCreating || projectName.isEmpty || destinationURL == nil)
+                        } else {
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    goToNextStep()
+                                }
+                            }) {
+                                HStack(spacing: AppSpacing.sm) {
+                                    Text("Next")
+                                    Image(systemName: "chevron.right")
+                                }
+                            }
+                            .primaryButton(enabled: canProceedToNextStep)
+                            .disabled(!canProceedToNextStep)
+                        }
+                    }
+                    .padding(AppSpacing.lg)
+                    .background(AppColors.background)
                 }
-                .padding(AppSpacing.lg)
-                .background(AppColors.secondaryBackground)
             }
             .navigationTitle("Create Project")
             .alert("Error", isPresented: $showingError) {
@@ -172,21 +195,8 @@ struct ProjectCreationView: View {
             } message: {
                 Text(errorMessage)
             }
-            .alert("Success", isPresented: $showingSuccess) {
-                Button("OK") {
-                    dismiss()
-                }
-                Button("Show in Finder") {
-                    if let url = createdProjectURL {
-                        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
-                    }
-                    dismiss()
-                }
-            } message: {
-                Text("Project '\(projectName)' created successfully!")
-            }
         }
-        .frame(minWidth: 600, minHeight: 400)
+        .frame(minWidth: 900, minHeight: 650)
     }
     
     // MARK: - Step Views
@@ -270,6 +280,7 @@ struct ProjectCreationView: View {
             TextField("Project Name", text: $projectName)
                 .textFieldStyle(.plain)
                 .font(AppTypography.title2)
+                .foregroundColor(AppColors.textPrimary)
                 .padding(AppSpacing.md)
                 .background(
                     RoundedRectangle(cornerRadius: AppCornerRadius.medium)
@@ -277,10 +288,20 @@ struct ProjectCreationView: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: AppCornerRadius.medium)
                                 .stroke(
-                                    projectName.isEmpty ? AppColors.border : AppColors.primary.opacity(0.5),
+                                    projectName.isEmpty 
+                                        ? AppColors.border 
+                                        : AppColors.accent.opacity(0.5),
                                     lineWidth: 2
                                 )
                         )
+                )
+                .shadow(
+                    color: projectName.isEmpty 
+                        ? Color.clear 
+                        : AppColors.accent.opacity(0.1),
+                    radius: 4,
+                    x: 0,
+                    y: 2
                 )
                 .appShadow(AppShadow.small)
             
@@ -329,7 +350,7 @@ struct ProjectCreationView: View {
                     Spacer()
                 }
                 .padding(AppSpacing.md)
-                .cardStyle()
+                .glassCardStyle()
             } else {
                 HStack {
                     Image(systemName: "folder.badge.questionmark")
@@ -420,7 +441,7 @@ struct ProjectCreationView: View {
                     }
                 }
                 .padding(AppSpacing.lg)
-                .cardStyle()
+                .glassCardStyle()
                 
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     HStack(spacing: AppSpacing.sm) {
@@ -477,10 +498,69 @@ struct ProjectCreationView: View {
                         .foregroundColor(AppColors.textSecondary)
                 }
                 .padding(AppSpacing.lg)
-                .cardStyle()
+                .glassCardStyle()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+    
+    private var confirmationView: some View {
+        VStack(spacing: AppSpacing.xl) {
+            Spacer()
+                .frame(height: AppSpacing.md)
+            
+            // Success icon
+            ZStack {
+                Circle()
+                    .fill(AppColors.successGradient.opacity(0.2))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(AppColors.successGradient)
+            }
+            .padding(.bottom, AppSpacing.md)
+            
+            // Success message
+            VStack(spacing: AppSpacing.md) {
+                Text("Project Created Successfully!")
+                    .font(AppTypography.title)
+                    .foregroundColor(AppColors.textPrimary)
+                
+                Text("Your project '\(projectName)' has been created.")
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            
+            // Project details card
+            if let url = createdProjectURL {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "folder.fill")
+                            .foregroundStyle(AppColors.primaryGradient)
+                            .font(.system(size: 18))
+                        
+                        Text("Project Location:")
+                            .font(AppTypography.headline)
+                            .foregroundColor(AppColors.textPrimary)
+                    }
+                    
+                    Text(url.path)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(AppColors.textSecondary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(AppSpacing.lg)
+                .glassCardStyle()
+                .frame(maxWidth: 500)
+            }
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(AppSpacing.xl)
     }
     
     // MARK: - Navigation
@@ -495,6 +575,8 @@ struct ProjectCreationView: View {
             return destinationURL != nil
         case .preview:
             return true
+        case .confirmation:
+            return false
         }
     }
     
@@ -558,7 +640,10 @@ struct ProjectCreationView: View {
                     createdProjectURL = createdURL
                     isCreating = false
                     creationProgress = 1.0
-                    showingSuccess = true
+                    // Transition to confirmation step
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        currentStep = .confirmation
+                    }
                 }
             } catch {
                 await MainActor.run {

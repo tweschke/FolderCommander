@@ -1,0 +1,107 @@
+//
+//  NavigationSidebar.swift
+//  Folder Commander
+//
+//  Created by Thomas Weschke on 27/01/2026.
+//
+
+import SwiftUI
+
+enum NavigationItem: String, CaseIterable, Identifiable {
+    case templates = "Templates"
+    case createProject = "Create Project"
+    
+    var id: String { rawValue }
+    
+    var icon: String {
+        switch self {
+        case .templates:
+            return "folder.fill"
+        case .createProject:
+            return "folder.badge.plus"
+        }
+    }
+}
+
+struct NavigationSidebar: View {
+    @Binding var selectedItem: NavigationItem
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // App title
+            HStack {
+                Text("Folder Commander")
+                    .font(AppTypography.title2)
+                    .foregroundColor(AppColors.textPrimary)
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.top, AppSpacing.md)
+                Spacer()
+            }
+            
+            // Navigation items
+            VStack(spacing: AppSpacing.sm) {
+                ForEach(NavigationItem.allCases) { item in
+                    NavigationItemView(
+                        item: item,
+                        isSelected: selectedItem == item
+                    ) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedItem = item
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.top, AppSpacing.lg)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .background(AppColors.sidebarGradient)
+    }
+}
+
+struct NavigationItemView: View {
+    let item: NavigationItem
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: AppSpacing.md) {
+                Image(systemName: item.icon)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(isSelected ? AppColors.primaryGradient : LinearGradient(colors: [AppColors.textSecondary, AppColors.textTertiary], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 24)
+                
+                Text(item.rawValue)
+                    .font(AppTypography.headline)
+                    .foregroundColor(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
+                
+                Spacer()
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.md)
+            .background(
+                Group {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                            .fill(AppColors.selectedGlowGradient)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                    .stroke(AppColors.accent.opacity(0.3), lineWidth: 1)
+                            )
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+#Preview {
+    NavigationSidebar(selectedItem: .constant(.templates))
+        .frame(width: 200, height: 600)
+}

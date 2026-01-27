@@ -9,14 +9,15 @@ import SwiftUI
 
 // MARK: - Color Theme
 struct AppColors {
-    // Primary colors - modern vibrant blues
-    static let primary = Color(red: 0.2, green: 0.4, blue: 0.9)
-    static let primaryLight = Color(red: 0.35, green: 0.55, blue: 0.95)
-    static let primaryDark = Color(red: 0.15, green: 0.3, blue: 0.75)
+    // Primary colors - purple-blue for icons and accents (kept for branding)
+    static let primary = Color(red: 0.4, green: 0.25, blue: 0.7)  // Purple-blue for icons
+    static let primaryLight = Color(red: 0.55, green: 0.4, blue: 0.85)  // Lighter purple-blue
+    static let primaryDark = Color(red: 0.3, green: 0.2, blue: 0.6)  // Darker purple-blue
     
-    // Accent colors
-    static let accent = Color(red: 0.5, green: 0.3, blue: 0.9)
-    static let accentLight = Color(red: 0.65, green: 0.45, blue: 0.95)
+    // Accent colors - light blue for active states
+    static let accent = Color(red: 0.2, green: 0.6, blue: 1.0)  // Light blue
+    static let accentLight = Color(red: 0.4, green: 0.7, blue: 1.0)  // Very light blue
+    static let accentMagenta = Color(red: 0.9, green: 0.3, blue: 0.7)  // Vibrant magenta
     
     // Success/Positive
     static let success = Color(red: 0.2, green: 0.7, blue: 0.4)
@@ -29,23 +30,30 @@ struct AppColors {
     static let destructive = Color(red: 0.9, green: 0.25, blue: 0.3)
     static let destructiveLight = Color(red: 0.95, green: 0.35, blue: 0.4)
     
-    // Backgrounds
-    static let background = Color(NSColor.windowBackgroundColor)
-    static let secondaryBackground = Color(NSColor.controlBackgroundColor)
-    static let tertiaryBackground = Color(NSColor.textBackgroundColor)
+    // Backgrounds - clean light colors
+    static let background = Color(red: 0.98, green: 0.98, blue: 0.99)  // Off-white background
+    static let backgroundLight = Color.white  // Pure white
+    static let secondaryBackground = Color(red: 0.97, green: 0.97, blue: 0.98)  // Light grey for sidebar
+    static let tertiaryBackground = Color(red: 0.95, green: 0.95, blue: 0.96)  // Slightly darker for cards
     
-    // Surfaces (for cards, panels)
-    static let surface = Color.white.opacity(0.7)
-    static let surfaceElevated = Color.white.opacity(0.85)
+    // Surfaces (for cards, panels) - light translucent
+    static let surface = Color.white.opacity(0.9)
+    static let surfaceElevated = Color.white.opacity(0.95)
     
-    // Text
-    static let textPrimary = Color.primary
-    static let textSecondary = Color.secondary
-    static let textTertiary = Color.secondary.opacity(0.7)
+    // Text - dark for light backgrounds
+    static let textPrimary = Color(red: 0.1, green: 0.1, blue: 0.15)  // Dark grey/black
+    static let textSecondary = Color(red: 0.4, green: 0.4, blue: 0.45)  // Medium grey
+    static let textTertiary = Color(red: 0.6, green: 0.6, blue: 0.65)  // Light grey
+    static let textInactive = Color(red: 0.7, green: 0.7, blue: 0.75)  // Very light grey
     
     // Borders
-    static let border = Color.gray.opacity(0.2)
-    static let borderLight = Color.gray.opacity(0.1)
+    static let border = Color(red: 0.85, green: 0.85, blue: 0.9)  // Light grey border
+    static let borderLight = Color(red: 0.9, green: 0.9, blue: 0.95)  // Very light border
+    static let borderGlow = Color(red: 0.2, green: 0.6, blue: 1.0).opacity(0.3)  // Light blue glow
+    
+    // Glow colors for selected states
+    static let glowBlue = Color(red: 0.2, green: 0.6, blue: 1.0)
+    static let glowPurple = Color(red: 0.4, green: 0.25, blue: 0.7)
     
     // Gradients
     static let primaryGradient = LinearGradient(
@@ -65,6 +73,38 @@ struct AppColors {
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
+    
+    // Background gradients for sidebar and content areas - light and clean
+    static let sidebarGradient = LinearGradient(
+        colors: [
+            Color(red: 0.97, green: 0.97, blue: 0.98),
+            Color(red: 0.98, green: 0.98, blue: 0.99)
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+    
+    static let contentGradient = LinearGradient(
+        colors: [
+            Color(red: 0.98, green: 0.98, blue: 0.99),
+            Color.white
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    // Selected state gradient - light blue background
+    static let selectedGlowGradient = LinearGradient(
+        colors: [
+            Color(red: 0.9, green: 0.95, blue: 1.0),  // Very light blue
+            Color(red: 0.85, green: 0.92, blue: 1.0)  // Slightly darker light blue
+        ],
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+    
+    // Glassmorphic material
+    static let glassMaterial = Material.ultraThinMaterial
 }
 
 // MARK: - Typography
@@ -102,9 +142,9 @@ struct AppCornerRadius {
 
 // MARK: - Shadows
 struct AppShadow {
-    static let small = Shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-    static let medium = Shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-    static let large = Shadow(color: .black.opacity(0.2), radius: 16, x: 0, y: 8)
+    static let small = Shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    static let medium = Shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+    static let large = Shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 8)
     
     struct Shadow {
         let color: Color
@@ -122,14 +162,45 @@ extension View {
     
     func cardStyle() -> some View {
         self
-            .background(AppColors.surfaceElevated)
-            .cornerRadius(AppCornerRadius.medium)
+            .background(
+                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                    .fill(AppColors.surfaceElevated)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
+            )
             .appShadow(AppShadow.small)
     }
     
     func glassEffect() -> some View {
         self
-            .background(.ultraThinMaterial)
-            .cornerRadius(AppCornerRadius.medium)
+            .background(
+                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                    .fill(AppColors.glassMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
+            )
+    }
+    
+    func glassCardStyle() -> some View {
+        self
+            .background(
+                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                    .fill(AppColors.surfaceElevated)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
+    }
+    
+    func glowEffect(intensity: CGFloat = 0.3) -> some View {
+        self
+            .shadow(color: AppColors.glowBlue.opacity(intensity * 0.2), radius: 8, x: 0, y: 0)
     }
 }

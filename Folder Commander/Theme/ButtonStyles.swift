@@ -45,7 +45,7 @@ struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.headline)
-            .foregroundColor(isEnabled ? AppColors.primary : Color.gray)
+            .foregroundColor(isEnabled ? AppColors.textPrimary : AppColors.textInactive)
             .padding(.horizontal, AppSpacing.lg)
             .padding(.vertical, AppSpacing.md)
             .background(
@@ -53,7 +53,7 @@ struct SecondaryButtonStyle: ButtonStyle {
                     .fill(AppColors.surfaceElevated)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                            .stroke(AppColors.primary.opacity(isEnabled ? 0.5 : 0.2), lineWidth: 1.5)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
             )
             .appShadow(configuration.isPressed ? AppShadow.small : AppShadow.medium)
@@ -70,7 +70,7 @@ struct TertiaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.bodyBold)
-            .foregroundColor(isEnabled ? AppColors.textPrimary : Color.gray)
+            .foregroundColor(isEnabled ? AppColors.textPrimary : AppColors.textInactive)
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
             .background(
@@ -142,6 +142,45 @@ struct IconButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Toolbar Icon Button Style (Oval/Pill shape)
+struct ToolbarIconButtonStyle: ButtonStyle {
+    var isPrimary: Bool = false
+    var size: CGFloat = 36
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(isPrimary ? .white : AppColors.textPrimary)
+            .frame(width: size, height: size)
+            .background(
+                Capsule()
+                    .fill(
+                        isPrimary 
+                            ? AnyShapeStyle(AppColors.primaryGradient)
+                            : AnyShapeStyle(AppColors.surfaceElevated)
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                isPrimary
+                                    ? Color.clear
+                                    : AppColors.border,
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(
+                color: Color.black.opacity(isPrimary ? 0.1 : 0.05),
+                radius: 4,
+                x: 0,
+                y: 2
+            )
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Button Style Extensions
 extension ButtonStyle where Self == PrimaryButtonStyle {
     static var appPrimary: PrimaryButtonStyle {
@@ -183,5 +222,9 @@ extension View {
     
     func destructiveButton(enabled: Bool = true) -> some View {
         self.buttonStyle(DestructiveButtonStyle(isEnabled: enabled))
+    }
+    
+    func toolbarIconButton(isPrimary: Bool = false, size: CGFloat = 36) -> some View {
+        self.buttonStyle(ToolbarIconButtonStyle(isPrimary: isPrimary, size: size))
     }
 }

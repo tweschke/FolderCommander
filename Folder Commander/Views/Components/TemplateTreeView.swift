@@ -24,32 +24,36 @@ struct TemplateTreeView: View {
                 HStack(spacing: AppSpacing.sm) {
                     Image(systemName: isExpanded ? "folder.fill" : "folder")
                         .foregroundStyle(AppColors.primaryGradient)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 18, weight: .semibold))
                     
                     Text(item.name)
                         .font(AppTypography.body)
                         .foregroundColor(AppColors.textPrimary)
                 }
-                .padding(.vertical, AppSpacing.xs)
+                .padding(.vertical, AppSpacing.sm)
             }
+            .tint(AppColors.textPrimary)
         } else {
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "doc.fill")
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [AppColors.textSecondary, AppColors.textTertiary],
+                            colors: [
+                                AppColors.textSecondary,
+                                AppColors.textTertiary
+                            ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 18, weight: .semibold))
                 
                 Text(item.name)
                     .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
             }
             .padding(.leading, AppSpacing.lg)
-            .padding(.vertical, AppSpacing.xs)
+            .padding(.vertical, AppSpacing.sm)
         }
     }
 }
