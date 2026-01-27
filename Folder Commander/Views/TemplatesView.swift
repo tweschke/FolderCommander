@@ -17,6 +17,10 @@ struct TemplatesView: View {
     @State private var editingTemplate: Template?
     @State private var selectedTemplate: Template?
     @State private var templateListWidth: CGFloat = 420
+    @State private var showingImportSuccess = false
+    @State private var showingImportError = false
+    @State private var importSuccessMessage = ""
+    @State private var importErrorMessage = ""
     
     var body: some View {
         GeometryReader { geometry in
@@ -117,16 +121,30 @@ struct TemplatesView: View {
             }
         }
         .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
+            ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingImport = true }) {
-                    Image(systemName: "square.and.arrow.down")
+                    Label("Import", systemImage: "tray.and.arrow.down")
                 }
-                .toolbarIconButton(isPrimary: false)
-                
+                .labelStyle(.titleAndIcon)
+                .help("Import templates from a JSON file")
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingNewTemplate = true }) {
-                    Image(systemName: "plus")
+                    Label {
+                        Text("New Template")
+                    } icon: {
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(
+                                Circle()
+                                    .fill(AppColors.primaryGradient)
+                            )
+                    }
                 }
-                .toolbarIconButton(isPrimary: true)
+                .labelStyle(.titleAndIcon)
+                .help("Create a new template")
             }
         }
         .sheet(isPresented: $showingNewTemplate) {
@@ -141,6 +159,16 @@ struct TemplatesView: View {
             allowsMultipleSelection: false
         ) { result in
             handleImport(result)
+        }
+        .alert("Import Successful", isPresented: $showingImportSuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(importSuccessMessage)
+        }
+        .alert("Import Failed", isPresented: $showingImportError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(importErrorMessage)
         }
     }
     
@@ -162,12 +190,45 @@ struct TemplatesView: View {
     private func handleImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
-            guard let url = urls.first else { return }
-            if let data = try? Data(contentsOf: url) {
-                let _ = templateStore.importAndAddTemplates(from: data)
+            guard let url = urls.first else {
+                importErrorMessage = "No file was selected."
+                showingImportError = true
+                return
             }
-        case .failure:
-            break
+            
+            // Request security-scoped resource access (required for macOS file access)
+            guard url.startAccessingSecurityScopedResource() else {
+                importErrorMessage = "Unable to access the selected file. Please try again."
+                showingImportError = true
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            
+            // Read file data
+            guard let data = try? Data(contentsOf: url) else {
+                importErrorMessage = "Unable to read the file. Please ensure it's a valid JSON file."
+                showingImportError = true
+                return
+            }
+            
+            // Import templates (handles both single template and array formats)
+            let importedCount = templateStore.importAndAddTemplates(from: data)
+            
+            if importedCount > 0 {
+                if importedCount == 1 {
+                    importSuccessMessage = "Successfully imported 1 template."
+                } else {
+                    importSuccessMessage = "Successfully imported \(importedCount) templates."
+                }
+                showingImportSuccess = true
+            } else {
+                importErrorMessage = "The file does not contain valid template data. Please ensure you're importing a template file exported from Folder Commander."
+                showingImportError = true
+            }
+            
+        case .failure(let error):
+            importErrorMessage = "Import failed: \(error.localizedDescription)"
+            showingImportError = true
         }
     }
 }

@@ -92,20 +92,38 @@ class TemplateStore: ObservableObject {
     }
     
     func importAndAddTemplates(from data: Data) -> Int {
-        guard let importedTemplates = importTemplates(from: data) else { return 0 }
-        var addedCount = 0
-        for template in importedTemplates {
-            if !templates.contains(where: { $0.id == template.id }) {
-                addTemplate(template)
-                addedCount += 1
+        // Try to decode as array first (for bulk imports)
+        if let importedTemplates = importTemplates(from: data) {
+            var addedCount = 0
+            for template in importedTemplates {
+                if !templates.contains(where: { $0.id == template.id }) {
+                    addTemplate(template)
+                    addedCount += 1
+                } else {
+                    // Generate new ID for duplicate
+                    var newTemplate = template
+                    newTemplate = Template(id: UUID(), name: template.name, rootItem: template.rootItem, createdDate: template.createdDate, modifiedDate: template.modifiedDate)
+                    addTemplate(newTemplate)
+                    addedCount += 1
+                }
+            }
+            return addedCount
+        }
+        
+        // If array decode failed, try single template (for single template exports)
+        if let singleTemplate = importTemplate(from: data) {
+            if !templates.contains(where: { $0.id == singleTemplate.id }) {
+                addTemplate(singleTemplate)
+                return 1
             } else {
                 // Generate new ID for duplicate
-                var newTemplate = template
-                newTemplate = Template(id: UUID(), name: template.name, rootItem: template.rootItem, createdDate: template.createdDate, modifiedDate: template.modifiedDate)
+                var newTemplate = singleTemplate
+                newTemplate = Template(id: UUID(), name: singleTemplate.name, rootItem: singleTemplate.rootItem, createdDate: singleTemplate.createdDate, modifiedDate: singleTemplate.modifiedDate)
                 addTemplate(newTemplate)
-                addedCount += 1
+                return 1
             }
         }
-        return addedCount
+        
+        return 0
     }
 }

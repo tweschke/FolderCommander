@@ -16,5 +16,6 @@ struct Folder_CommanderApp: App {
             ContentView(appSettings: appSettings)
         }
         .defaultSize(width: 1400, height: 900)
+        .windowToolbarStyle(.unified)
     }
 }

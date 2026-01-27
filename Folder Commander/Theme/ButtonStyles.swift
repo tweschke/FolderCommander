@@ -151,7 +151,9 @@ struct ToolbarIconButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: 16, weight: .medium))
             .foregroundColor(isPrimary ? .white : AppColors.textPrimary)
-            .frame(width: size, height: size)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .frame(minWidth: size, minHeight: size)
             .background(
                 Capsule()
                     .fill(
@@ -168,12 +170,6 @@ struct ToolbarIconButtonStyle: ButtonStyle {
                                 lineWidth: 1
                             )
                     )
-            )
-            .shadow(
-                color: Color.black.opacity(isPrimary ? 0.1 : 0.05),
-                radius: 4,
-                x: 0,
-                y: 2
             )
             .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
             .opacity(configuration.isPressed ? 0.8 : 1.0)
