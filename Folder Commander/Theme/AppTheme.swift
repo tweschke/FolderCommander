@@ -6,18 +6,19 @@
 //
 
 import SwiftUI
+import AppKit
 
 // MARK: - Color Theme
 struct AppColors {
     // Primary colors - purple-blue for icons and accents (kept for branding)
-    static let primary = Color(red: 0.4, green: 0.25, blue: 0.7)  // Purple-blue for icons
-    static let primaryLight = Color(red: 0.55, green: 0.4, blue: 0.85)  // Lighter purple-blue
-    static let primaryDark = Color(red: 0.3, green: 0.2, blue: 0.6)  // Darker purple-blue
+    static let primary = Color(red: 0.4, green: 0.25, blue: 0.7)
+    static let primaryLight = Color(red: 0.55, green: 0.4, blue: 0.85)
+    static let primaryDark = Color(red: 0.3, green: 0.2, blue: 0.6)
     
     // Accent colors - light blue for active states
-    static let accent = Color(red: 0.2, green: 0.6, blue: 1.0)  // Light blue
-    static let accentLight = Color(red: 0.4, green: 0.7, blue: 1.0)  // Very light blue
-    static let accentMagenta = Color(red: 0.9, green: 0.3, blue: 0.7)  // Vibrant magenta
+    static let accent = Color(red: 0.2, green: 0.6, blue: 1.0)
+    static let accentLight = Color(red: 0.4, green: 0.7, blue: 1.0)
+    static let accentMagenta = Color(red: 0.9, green: 0.3, blue: 0.7)
     
     // Success/Positive
     static let success = Color(red: 0.2, green: 0.7, blue: 0.4)
@@ -30,79 +31,136 @@ struct AppColors {
     static let destructive = Color(red: 0.9, green: 0.25, blue: 0.3)
     static let destructiveLight = Color(red: 0.95, green: 0.35, blue: 0.4)
     
-    // Backgrounds - clean light colors
-    static let background = Color(red: 0.98, green: 0.98, blue: 0.99)  // Off-white background
-    static let backgroundLight = Color.white  // Pure white
-    static let secondaryBackground = Color(red: 0.97, green: 0.97, blue: 0.98)  // Light grey for sidebar
-    static let tertiaryBackground = Color(red: 0.95, green: 0.95, blue: 0.96)  // Slightly darker for cards
-    
-    // Surfaces (for cards, panels) - light translucent
-    static let surface = Color.white.opacity(0.9)
-    static let surfaceElevated = Color.white.opacity(0.95)
-    
-    // Text - dark for light backgrounds
-    static let textPrimary = Color(red: 0.1, green: 0.1, blue: 0.15)  // Dark grey/black
-    static let textSecondary = Color(red: 0.4, green: 0.4, blue: 0.45)  // Medium grey
-    static let textTertiary = Color(red: 0.6, green: 0.6, blue: 0.65)  // Light grey
-    static let textInactive = Color(red: 0.7, green: 0.7, blue: 0.75)  // Very light grey
-    
+    // Text - adaptive for contrast
+    static let textPrimary = Color.adaptive(
+        light: NSColor(red: 0.1, green: 0.1, blue: 0.15, alpha: 1),
+        dark: NSColor(red: 0.95, green: 0.95, blue: 1.0, alpha: 1)
+    )
+    static let textSecondary = Color.adaptive(
+        light: NSColor(red: 0.4, green: 0.4, blue: 0.45, alpha: 1),
+        dark: NSColor(red: 0.75, green: 0.75, blue: 0.8, alpha: 1)
+    )
+    static let textTertiary = Color.adaptive(
+        light: NSColor(red: 0.6, green: 0.6, blue: 0.65, alpha: 1),
+        dark: NSColor(red: 0.65, green: 0.65, blue: 0.7, alpha: 1)
+    )
+    static let textInactive = Color.adaptive(
+        light: NSColor(red: 0.7, green: 0.7, blue: 0.75, alpha: 1),
+        dark: NSColor(red: 0.5, green: 0.5, blue: 0.55, alpha: 1)
+    )
+
+    // Backgrounds
+    static let background = Color.adaptive(
+        light: NSColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1),
+        dark: NSColor(red: 0.08, green: 0.08, blue: 0.12, alpha: 1)
+    )
+    static let backgroundLight = Color.adaptive(
+        light: NSColor.white,
+        dark: NSColor(red: 0.12, green: 0.12, blue: 0.16, alpha: 1)
+    )
+    static let secondaryBackground = Color.adaptive(
+        light: NSColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1),
+        dark: NSColor(red: 0.15, green: 0.15, blue: 0.2, alpha: 1)
+    )
+    static let tertiaryBackground = Color.adaptive(
+        light: NSColor(red: 0.95, green: 0.95, blue: 0.96, alpha: 1),
+        dark: NSColor(red: 0.18, green: 0.18, blue: 0.22, alpha: 1)
+    )
+
+    // Surfaces (for cards, panels)
+    static let surface = Color.adaptive(
+        light: NSColor(white: 1, alpha: 0.9),
+        dark: NSColor(red: 0.15, green: 0.15, blue: 0.2, alpha: 0.9)
+    )
+    static let surfaceElevated = Color.adaptive(
+        light: NSColor(white: 1, alpha: 0.95),
+        dark: NSColor(red: 0.18, green: 0.18, blue: 0.23, alpha: 0.95)
+    )
+
     // Borders
-    static let border = Color(red: 0.85, green: 0.85, blue: 0.9)  // Light grey border
-    static let borderLight = Color(red: 0.9, green: 0.9, blue: 0.95)  // Very light border
-    static let borderGlow = Color(red: 0.2, green: 0.6, blue: 1.0).opacity(0.3)  // Light blue glow
-    
+    static let border = Color.adaptive(
+        light: NSColor(red: 0.85, green: 0.85, blue: 0.9, alpha: 1),
+        dark: NSColor(red: 0.35, green: 0.35, blue: 0.45, alpha: 1)
+    )
+    static let borderLight = Color.adaptive(
+        light: NSColor(red: 0.9, green: 0.9, blue: 0.95, alpha: 1),
+        dark: NSColor(red: 0.5, green: 0.5, blue: 0.55, alpha: 1)
+    )
+    static let borderGlow = Color.adaptive(
+        light: NSColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 0.3),
+        dark: NSColor(red: 0.4, green: 0.7, blue: 1.0, alpha: 0.25)
+    )
+
     // Glow colors for selected states
     static let glowBlue = Color(red: 0.2, green: 0.6, blue: 1.0)
     static let glowPurple = Color(red: 0.4, green: 0.25, blue: 0.7)
-    
+
     // Gradients
     static let primaryGradient = LinearGradient(
         colors: [primary, primaryLight],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
+
     static let accentGradient = LinearGradient(
         colors: [accent, accentLight],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
+
     static let successGradient = LinearGradient(
         colors: [success, successLight],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
-    // Background gradients for sidebar and content areas - light and clean
+
+    // Background gradients (adapted for both modes)
     static let sidebarGradient = LinearGradient(
         colors: [
-            Color(red: 0.97, green: 0.97, blue: 0.98),
-            Color(red: 0.98, green: 0.98, blue: 0.99)
+            Color.adaptive(
+                light: NSColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1),
+                dark: NSColor(red: 0.14, green: 0.14, blue: 0.18, alpha: 1)
+            ),
+            Color.adaptive(
+                light: NSColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1),
+                dark: NSColor(red: 0.1, green: 0.1, blue: 0.14, alpha: 1)
+            )
         ],
         startPoint: .top,
         endPoint: .bottom
     )
-    
+
     static let contentGradient = LinearGradient(
         colors: [
-            Color(red: 0.98, green: 0.98, blue: 0.99),
-            Color.white
+            Color.adaptive(
+                light: NSColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1),
+                dark: NSColor(red: 0.1, green: 0.1, blue: 0.14, alpha: 1)
+            ),
+            Color.adaptive(
+                light: NSColor.white,
+                dark: NSColor(red: 0.06, green: 0.06, blue: 0.1, alpha: 1)
+            )
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
-    // Selected state gradient - light blue background
+
+    // Selected state gradient
     static let selectedGlowGradient = LinearGradient(
         colors: [
-            Color(red: 0.9, green: 0.95, blue: 1.0),  // Very light blue
-            Color(red: 0.85, green: 0.92, blue: 1.0)  // Slightly darker light blue
+            Color.adaptive(
+                light: NSColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1),
+                dark: NSColor(red: 0.15, green: 0.2, blue: 0.3, alpha: 1)
+            ),
+            Color.adaptive(
+                light: NSColor(red: 0.85, green: 0.92, blue: 1.0, alpha: 1),
+                dark: NSColor(red: 0.1, green: 0.15, blue: 0.25, alpha: 1)
+            )
         ],
         startPoint: .leading,
         endPoint: .trailing
     )
-    
+
     // Glassmorphic material
     static let glassMaterial = Material.ultraThinMaterial
 }

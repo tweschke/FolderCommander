@@ -11,6 +11,7 @@ import AppKit
 struct ProjectCreationView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var templateStore: TemplateStore
+    @ObservedObject var appSettings: AppSettings
     
     @State private var selectedTemplate: Template?
     @State private var projectName: String = ""
@@ -459,7 +460,7 @@ struct ProjectCreationView: View {
                             // Show children of rootItem directly, not rootItem itself
                             if let children = template.rootItem.children, !children.isEmpty {
                                 ForEach(children) { child in
-                                    TemplateTreeView(item: child)
+                                    TemplateTreeView(item: child, appSettings: nil)
                                 }
                             } else {
                                 HStack {
@@ -633,7 +634,8 @@ struct ProjectCreationView: View {
                 let createdURL = try await fileSystemService.createProject(
                     from: template,
                     name: projectName,
-                    at: destination
+                    at: destination,
+                    appSettings: appSettings
                 )
                 
                 await MainActor.run {
@@ -657,5 +659,5 @@ struct ProjectCreationView: View {
 }
 
 #Preview {
-    ProjectCreationView(templateStore: TemplateStore())
+    ProjectCreationView(templateStore: TemplateStore(), appSettings: AppSettings())
 }

@@ -70,7 +70,7 @@ struct TertiaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.bodyBold)
-            .foregroundColor(isEnabled ? AppColors.textPrimary : AppColors.textInactive)
+            .foregroundColor(isEnabled ? Color.primary : Color.secondary)
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
             .background(

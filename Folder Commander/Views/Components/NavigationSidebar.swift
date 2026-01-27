@@ -10,6 +10,7 @@ import SwiftUI
 enum NavigationItem: String, CaseIterable, Identifiable {
     case templates = "Templates"
     case createProject = "Create Project"
+    case settings = "Settings"
     
     var id: String { rawValue }
     
@@ -19,7 +20,19 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return "folder.fill"
         case .createProject:
             return "folder.badge.plus"
+        case .settings:
+            return "gearshape.fill"
         }
+    }
+    
+    /// Navigation items that appear at the top (main items)
+    static var mainItems: [NavigationItem] {
+        [.templates, .createProject]
+    }
+    
+    /// Navigation items that appear at the bottom (settings/utilities)
+    static var bottomItems: [NavigationItem] {
+        [.settings]
     }
 }
 
@@ -38,9 +51,9 @@ struct NavigationSidebar: View {
                 Spacer()
             }
             
-            // Navigation items
+            // Navigation items (main)
             VStack(spacing: AppSpacing.sm) {
-                ForEach(NavigationItem.allCases) { item in
+                ForEach(NavigationItem.mainItems) { item in
                     NavigationItemView(
                         item: item,
                         isSelected: selectedItem == item
@@ -55,6 +68,26 @@ struct NavigationSidebar: View {
             .padding(.top, AppSpacing.lg)
             
             Spacer()
+            
+            // Navigation items (bottom - settings)
+            VStack(spacing: AppSpacing.sm) {
+                Divider()
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.sm)
+                
+                ForEach(NavigationItem.bottomItems) { item in
+                    NavigationItemView(
+                        item: item,
+                        isSelected: selectedItem == item
+                    ) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedItem = item
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.bottom, AppSpacing.md)
         }
         .frame(maxWidth: .infinity)
         .background(AppColors.sidebarGradient)

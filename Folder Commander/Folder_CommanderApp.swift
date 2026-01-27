@@ -9,10 +9,13 @@ import SwiftUI
 
 @main
 struct Folder_CommanderApp: App {
+    @StateObject private var appSettings = AppSettings()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(appSettings: appSettings)
+                .preferredColorScheme(appSettings.preferredColorScheme)
         }
-        .defaultSize(width: 1100, height: 750)
+        .defaultSize(width: 1400, height: 900)
     }
 }

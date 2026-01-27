@@ -10,6 +10,7 @@ import SwiftUI
 struct TemplateEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var templateStore: TemplateStore
+    @ObservedObject var appSettings: AppSettings
     let editingTemplate: Template?
     
     @State private var templateName: String
@@ -27,8 +28,9 @@ struct TemplateEditorView: View {
         case text
     }
     
-    init(templateStore: TemplateStore, editingTemplate: Template? = nil) {
+    init(templateStore: TemplateStore, editingTemplate: Template? = nil, appSettings: AppSettings) {
         self.templateStore = templateStore
+        self.appSettings = appSettings
         self.editingTemplate = editingTemplate
         
         if let template = editingTemplate {
@@ -106,7 +108,8 @@ struct TemplateEditorView: View {
                         rootItem: $rootItem,
                         selectedItem: $selectedItem,
                         editingItem: $editingItem,
-                        showingItemEditor: $showingItemEditor
+                        showingItemEditor: $showingItemEditor,
+                        appSettings: appSettings
                     )
                 } else {
                     TextEditorView(textInput: $textInput, rootItem: $rootItem)
@@ -138,10 +141,11 @@ struct TemplateEditorView: View {
                 Text(errorMessage)
             }
             .sheet(item: $editingItem) { item in
-                ItemEditorView(item: item, rootItem: $rootItem, editingItem: $editingItem)
+                ItemEditorView(item: item, rootItem: $rootItem, editingItem: $editingItem, appSettings: appSettings)
             }
         }
-        .frame(minWidth: 600, minHeight: 500)
+        .frame(minWidth: 800)
+        .frame(minHeight: 700)
     }
     
     private func saveTemplate() {
@@ -206,6 +210,7 @@ struct VisualEditorView: View {
     @Binding var selectedItem: FolderItem?
     @Binding var editingItem: FolderItem?
     @Binding var showingItemEditor: Bool
+    @ObservedObject var appSettings: AppSettings
     
     var body: some View {
         HStack(spacing: 0) {
@@ -219,7 +224,8 @@ struct VisualEditorView: View {
                                 selectedItem: $selectedItem,
                                 editingItem: $editingItem,
                                 showingItemEditor: $showingItemEditor,
-                                rootItem: $rootItem
+                                rootItem: $rootItem,
+                                appSettings: appSettings
                             )
                         }
                     } else {
@@ -363,27 +369,35 @@ struct EditableTreeView: View {
     @Binding var editingItem: FolderItem?
     @Binding var showingItemEditor: Bool
     @Binding var rootItem: FolderItem
+    @ObservedObject var appSettings: AppSettings
     @State private var isExpanded = true
     
     var body: some View {
         if item.type == .folder {
             DisclosureGroup(isExpanded: $isExpanded) {
                 if let children = item.children {
-                    ForEach(children) { child in
-                        EditableTreeView(
-                            item: child,
-                            selectedItem: $selectedItem,
-                            editingItem: $editingItem,
-                            showingItemEditor: $showingItemEditor,
-                            rootItem: $rootItem
-                        )
-                        .padding(.leading, 16)
-                    }
+                        ForEach(children) { child in
+                            EditableTreeView(
+                                item: child,
+                                selectedItem: $selectedItem,
+                                editingItem: $editingItem,
+                                showingItemEditor: $showingItemEditor,
+                                rootItem: $rootItem,
+                                appSettings: appSettings
+                            )
+                            .padding(.leading, 16)
+                        }
                 }
             } label: {
                 HStack(spacing: AppSpacing.sm) {
-                    Image(systemName: isExpanded ? "folder.fill" : "folder")
-                        .foregroundStyle(AppColors.primaryGradient)
+                    // Use custom icon if available, otherwise use default folder icon
+                    let iconName = item.getIconName() ?? (isExpanded ? "folder.fill" : "folder")
+                    Image(systemName: iconName)
+                        .foregroundStyle(
+                            appSettings.customColorsEnabled
+                                ? AnyShapeStyle(item.getDisplayColor(defaultColor: appSettings.defaultFolderColor))
+                                : AnyShapeStyle(AppColors.primaryGradient)
+                        )
                         .font(.system(size: 18, weight: .semibold))
                     
                     Text(item.name)
@@ -562,95 +576,114 @@ struct ItemEditorView: View {
     let item: FolderItem
     @Binding var rootItem: FolderItem
     @Binding var editingItem: FolderItem?
+    @ObservedObject var appSettings: AppSettings
     @Environment(\.dismiss) private var dismiss
     
     @State private var name: String
     @State private var type: ItemType
     @State private var content: String
+    @State private var color: String?
+    @State private var icon: String?
     
-    init(item: FolderItem, rootItem: Binding<FolderItem>, editingItem: Binding<FolderItem?>) {
+    init(item: FolderItem, rootItem: Binding<FolderItem>, editingItem: Binding<FolderItem?>, appSettings: AppSettings) {
         self.item = item
         self._rootItem = rootItem
         self._editingItem = editingItem
+        self.appSettings = appSettings
         _name = State(initialValue: item.name)
         _type = State(initialValue: item.type)
         _content = State(initialValue: item.content ?? "")
+        _color = State(initialValue: item.color)
+        _icon = State(initialValue: item.icon)
     }
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: AppSpacing.lg) {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text("Name")
-                        .font(AppTypography.caption)
-                        .foregroundColor(AppColors.textSecondary)
-                    
-                    TextField("Item name", text: $name)
-                        .textFieldStyle(.plain)
-                        .font(AppTypography.body)
-                        .foregroundColor(AppColors.textPrimary)
-                        .padding(AppSpacing.md)
-                        .background(
-                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                .fill(AppColors.surfaceElevated)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                        .stroke(
-                                            name.isEmpty 
-                                                ? AppColors.border 
-                                                : AppColors.accent.opacity(0.5),
-                                            lineWidth: 2
-                                        )
-                                )
-                        )
-                        .shadow(
-                            color: name.isEmpty 
-                                ? Color.clear 
-                                : AppColors.accent.opacity(0.1),
-                            radius: 4,
-                            x: 0,
-                            y: 2
-                        )
-                        .appShadow(AppShadow.small)
-                }
-                
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text("Type")
-                        .font(AppTypography.caption)
-                        .foregroundColor(AppColors.textSecondary)
-                    
-                    Picker("Type", selection: $type) {
-                        Label("Folder", systemImage: "folder.fill").tag(ItemType.folder)
-                        Label("File", systemImage: "doc.fill").tag(ItemType.file)
-                    }
-                    .pickerStyle(.segmented)
-                    .tint(AppColors.accent)
-                }
-                
-                if type == .file {
+            ScrollView {
+                VStack(spacing: AppSpacing.lg) {
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Content (optional)")
+                        Text("Name")
                             .font(AppTypography.caption)
                             .foregroundColor(AppColors.textSecondary)
                         
-                        TextEditor(text: $content)
-                            .font(.system(.body, design: .monospaced))
-                            .frame(height: 200)
-                            .padding(AppSpacing.sm)
+                        TextField("Item name", text: $name)
+                            .textFieldStyle(.plain)
+                            .font(AppTypography.body)
+                            .foregroundColor(AppColors.textPrimary)
+                            .padding(AppSpacing.md)
                             .background(
                                 RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                    .fill(AppColors.tertiaryBackground)
+                                    .fill(AppColors.surfaceElevated)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                            .stroke(AppColors.border, lineWidth: 1)
+                                            .stroke(
+                                                name.isEmpty 
+                                                    ? AppColors.border 
+                                                    : AppColors.accent.opacity(0.5),
+                                                lineWidth: 2
+                                            )
                                     )
                             )
+                            .shadow(
+                                color: name.isEmpty 
+                                    ? Color.clear 
+                                    : AppColors.accent.opacity(0.1),
+                                radius: 4,
+                                x: 0,
+                                y: 2
+                            )
+                            .appShadow(AppShadow.small)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        Text("Type")
+                            .font(AppTypography.caption)
+                            .foregroundColor(AppColors.textSecondary)
+                        
+                        Picker("Type", selection: $type) {
+                            Label("Folder", systemImage: "folder.fill").tag(ItemType.folder)
+                            Label("File", systemImage: "doc.fill").tag(ItemType.file)
+                        }
+                        .pickerStyle(.segmented)
+                        .tint(AppColors.accent)
+                    }
+                    
+                    if type == .file {
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            Text("Content (optional)")
+                                .font(AppTypography.caption)
+                                .foregroundColor(AppColors.textSecondary)
+                            
+                            TextEditor(text: $content)
+                                .font(.system(.body, design: .monospaced))
+                                .frame(height: 200)
+                                .padding(AppSpacing.sm)
+                                .background(
+                                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                        .fill(AppColors.tertiaryBackground)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                                .stroke(AppColors.border, lineWidth: 1)
+                                        )
+                                )
+                        }
+                    }
+                    
+                    // Color picker (only for folders and when custom colors enabled)
+                    if type == .folder && appSettings.customColorsEnabled {
+                        FolderColorPicker(
+                            selectedColorHex: $color,
+                            defaultColorHex: appSettings.defaultFolderColor
+                        )
+                    }
+                    
+                    // Icon picker (only for folders)
+                    if type == .folder {
+                        FolderIconPicker(selectedIconName: $icon)
                     }
                 }
-                
-                Spacer()
+                .padding(AppSpacing.lg)
             }
-            .padding(AppSpacing.lg)
             .background(AppColors.contentGradient)
             .navigationTitle("Edit Item")
             .toolbar {
@@ -672,20 +705,24 @@ struct ItemEditorView: View {
                 }
             }
         }
-        .frame(width: 500, height: type == .file ? 450 : 250)
+        .frame(width: 600)
+        .frame(minHeight: 600)
     }
     
+    
     private func saveItem() {
-        updateItem(item, name: name, type: type, content: type == .file ? content : nil, in: &rootItem)
+        updateItem(item, name: name, type: type, content: type == .file ? content : nil, color: type == .folder ? color : nil, icon: type == .folder ? icon : nil, in: &rootItem)
         editingItem = nil
         dismiss()
     }
     
-    private func updateItem(_ item: FolderItem, name: String, type: ItemType, content: String?, in root: inout FolderItem) {
+    private func updateItem(_ item: FolderItem, name: String, type: ItemType, content: String?, color: String?, icon: String?, in root: inout FolderItem) {
         if root.id == item.id {
             root.name = name
             root.type = type
             root.content = content
+            root.color = color
+            root.icon = icon
             if type == .folder && root.children == nil {
                 root.children = []
             } else if type == .file {
@@ -693,12 +730,12 @@ struct ItemEditorView: View {
             }
         } else if let children = root.children {
             for index in children.indices {
-                updateItem(item, name: name, type: type, content: content, in: &root.children![index])
+                updateItem(item, name: name, type: type, content: content, color: color, icon: icon, in: &root.children![index])
             }
         }
     }
 }
 
 #Preview {
-    TemplateEditorView(templateStore: TemplateStore())
+    TemplateEditorView(templateStore: TemplateStore(), appSettings: AppSettings())
 }

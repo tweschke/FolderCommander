@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct MainView: View {
+    @ObservedObject var appSettings: AppSettings
     @StateObject private var templateStore = TemplateStore()
     @State private var selectedNavigationItem: NavigationItem = .templates
     @State private var showingCreateProject = false
@@ -34,9 +35,11 @@ struct MainView: View {
                     Group {
                         switch selectedNavigationItem {
                         case .templates:
-                            TemplatesView(templateStore: templateStore)
+                            TemplatesView(templateStore: templateStore, appSettings: appSettings)
                         case .createProject:
-                            ProjectCreationView(templateStore: templateStore)
+                            ProjectCreationView(templateStore: templateStore, appSettings: appSettings)
+                        case .settings:
+                            SettingsView(settings: appSettings)
                         }
                     }
                 }
@@ -46,13 +49,14 @@ struct MainView: View {
         }
         .background(AppColors.background)
         .sheet(isPresented: $showingCreateProject) {
-            ProjectCreationView(templateStore: templateStore)
+            ProjectCreationView(templateStore: templateStore, appSettings: appSettings)
         }
     }
 }
 
 struct TemplateDetailView: View {
     let template: Template
+    let appSettings: AppSettings?
     
     var body: some View {
         ScrollView {
@@ -114,7 +118,7 @@ struct TemplateDetailView: View {
                     if let children = template.rootItem.children, !children.isEmpty {
                         VStack(alignment: .leading, spacing: AppSpacing.sm) {
                             ForEach(children) { child in
-                                TemplateTreeView(item: child)
+                                TemplateTreeView(item: child, appSettings: appSettings)
                                     .padding(.horizontal, AppSpacing.lg)
                             }
                         }
@@ -143,5 +147,5 @@ struct TemplateDetailView: View {
 }
 
 #Preview {
-    MainView()
+    MainView(appSettings: AppSettings())
 }

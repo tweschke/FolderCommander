@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 
 struct TemplatesView: View {
     @ObservedObject var templateStore: TemplateStore
+    @ObservedObject var appSettings: AppSettings
     @State private var showingNewTemplate = false
     @State private var showingImport = false
     @State private var editingTemplate: Template?
@@ -97,7 +98,7 @@ struct TemplatesView: View {
                 // Template detail
                 Group {
                     if let template = selectedTemplate {
-                        TemplateDetailView(template: template)
+                        TemplateDetailView(template: template, appSettings: appSettings)
                     } else {
                         VStack(spacing: AppSpacing.lg) {
                             Image(systemName: "doc.text.magnifyingglass")
@@ -129,10 +130,10 @@ struct TemplatesView: View {
             }
         }
         .sheet(isPresented: $showingNewTemplate) {
-            TemplateEditorView(templateStore: templateStore)
+            TemplateEditorView(templateStore: templateStore, appSettings: appSettings)
         }
         .sheet(item: $editingTemplate) { template in
-            TemplateEditorView(templateStore: templateStore, editingTemplate: template)
+            TemplateEditorView(templateStore: templateStore, editingTemplate: template, appSettings: appSettings)
         }
         .fileImporter(
             isPresented: $showingImport,
@@ -311,6 +312,6 @@ struct DeleteIconButtonStyle: ButtonStyle {
 }
 
 #Preview {
-    TemplatesView(templateStore: TemplateStore())
+    TemplatesView(templateStore: TemplateStore(), appSettings: AppSettings())
         .frame(width: 800, height: 600)
 }

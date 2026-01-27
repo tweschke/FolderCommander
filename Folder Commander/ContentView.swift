@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ObservedObject var appSettings: AppSettings
+
     var body: some View {
-        MainView()
+        MainView(appSettings: appSettings)
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(appSettings: AppSettings())
 }
