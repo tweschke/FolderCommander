@@ -13,28 +13,7 @@ struct ContentView: View {
 
     var body: some View {
         MainView(appSettings: appSettings)
-            .background(WindowTitleRemover())
-    }
-}
-
-// View modifier to remove window title text
-struct WindowTitleRemover: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            if let window = view.window {
-                window.title = ""
-            }
-        }
-        return view
-    }
-    
-    func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async {
-            if let window = nsView.window {
-                window.title = ""
-            }
-        }
+            .frame(minWidth: 1200, minHeight: 800)
     }
 }
 

@@ -89,6 +89,17 @@ struct NavigationItemView: View {
     let isSelected: Bool
     let action: () -> Void
     
+    private func accessibilityHint(for item: NavigationItem) -> String {
+        switch item {
+        case .templates:
+            return "Shows your folder structure templates"
+        case .createProject:
+            return "Opens the project creation wizard"
+        case .settings:
+            return "Opens application settings"
+        }
+    }
+    
     var body: some View {
         Button(action: action) {
             HStack(spacing: AppSpacing.md) {
@@ -121,6 +132,9 @@ struct NavigationItemView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(item.rawValue)
+        .accessibilityHint(accessibilityHint(for: item))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

@@ -19,8 +19,6 @@ struct ProjectCreationView: View {
     @State private var currentStep: CreationStep = .selectTemplate
     @State private var isCreating = false
     @State private var creationProgress: Double = 0
-    @State private var showingError = false
-    @State private var errorMessage = ""
     @State private var createdProjectURL: URL?
     
     private let fileSystemService = FileSystemService()
@@ -191,11 +189,7 @@ struct ProjectCreationView: View {
                 }
             }
             .navigationTitle("Folder Commander")
-            .alert("Error", isPresented: $showingError) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(errorMessage)
-            }
+            .errorAlert()
             .standardToolbar(templateStore: templateStore, appSettings: appSettings)
         }
         .frame(minWidth: 900, minHeight: 650)
@@ -336,6 +330,8 @@ struct ProjectCreationView: View {
                     y: 2
                 )
                 .appShadow(AppShadow.small)
+                .accessibilityLabel("Project name")
+                .accessibilityHint("Enter the name for your project folder")
             
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "info.circle.fill")
@@ -681,8 +677,7 @@ struct ProjectCreationView: View {
             } catch {
                 await MainActor.run {
                     isCreating = false
-                    errorMessage = error.localizedDescription
-                    showingError = true
+                    ErrorHandlingService.shared.handle(error, context: "Project creation failed")
                 }
             }
         }

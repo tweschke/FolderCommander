@@ -187,6 +187,9 @@ struct TemplateCardView: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Template \(template.name)")
+            .accessibilityHint("Double-click to preview template structure")
+            .accessibilityValue("\(itemCount) items, modified \(template.modifiedDate, style: .date)")
             
             // Action buttons
             HStack(spacing: AppSpacing.sm) {
@@ -197,6 +200,8 @@ struct TemplateCardView: View {
                 }
                 .toolbarIconButton(isPrimary: false, size: 28)
                 .help("Edit")
+                .accessibilityLabel("Edit template \(template.name)")
+                .accessibilityHint("Opens the template editor")
                 
                 // Export button
                 Button(action: onExport) {
@@ -205,6 +210,8 @@ struct TemplateCardView: View {
                 }
                 .toolbarIconButton(isPrimary: false, size: 28)
                 .help("Export")
+                .accessibilityLabel("Export template \(template.name)")
+                .accessibilityHint("Saves the template as a JSON file")
                 
                 // Delete button
                 Button(action: onDelete) {
@@ -213,6 +220,8 @@ struct TemplateCardView: View {
                 }
                 .buttonStyle(DeleteIconButtonStyle())
                 .help("Delete")
+                .accessibilityLabel("Delete template \(template.name)")
+                .accessibilityHint("Permanently removes this template")
             }
         }
         .padding(AppSpacing.md)

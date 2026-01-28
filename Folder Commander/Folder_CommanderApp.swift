@@ -17,5 +17,8 @@ struct Folder_CommanderApp: App {
         }
         .defaultSize(width: 1400, height: 900)
         .windowToolbarStyle(.unified)
+        .commands {
+            AppMenuCommands()
+        }
     }
 }

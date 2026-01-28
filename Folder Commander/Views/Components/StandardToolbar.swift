@@ -28,6 +28,8 @@ struct StandardToolbar: ViewModifier {
                     }
                     .labelStyle(.titleAndIcon)
                     .help("Import templates from a JSON file")
+                    .accessibilityLabel("Import template")
+                    .accessibilityHint("Opens a file picker to import templates from a JSON file")
                 }
 
                 ToolbarItem(placement: .primaryAction) {
@@ -46,6 +48,8 @@ struct StandardToolbar: ViewModifier {
                     }
                     .labelStyle(.titleAndIcon)
                     .help("Create a new template")
+                    .accessibilityLabel("New template")
+                    .accessibilityHint("Opens the template editor to create a new folder structure template")
                 }
             }
             .sheet(isPresented: $showingNewTemplate) {
@@ -67,6 +71,13 @@ struct StandardToolbar: ViewModifier {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(importErrorMessage)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .importTemplate)) { _ in
+                showingImport = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .exportTemplate)) { _ in
+                // Export will be handled by TemplatesView when a template is selected
+                // This notification can trigger export if there's a selected template
             }
     }
 

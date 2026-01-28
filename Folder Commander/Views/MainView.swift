@@ -12,6 +12,7 @@ struct MainView: View {
     @StateObject private var templateStore = TemplateStore()
     @State private var selectedNavigationItem: NavigationItem = .templates
     @State private var showingCreateProject = false
+    @State private var showingNewTemplate = false
     @State private var sidebarWidth: CGFloat = 220
     
     var body: some View {
@@ -50,6 +51,18 @@ struct MainView: View {
         .background(AppColors.background)
         .sheet(isPresented: $showingCreateProject) {
             ProjectCreationView(templateStore: templateStore, appSettings: appSettings)
+        }
+        .sheet(isPresented: $showingNewTemplate) {
+            TemplateEditorView(templateStore: templateStore, appSettings: appSettings)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .createNewTemplate)) { _ in
+            showingNewTemplate = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .createNewProject)) { _ in
+            selectedNavigationItem = .createProject
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
+            selectedNavigationItem = .settings
         }
     }
 }
