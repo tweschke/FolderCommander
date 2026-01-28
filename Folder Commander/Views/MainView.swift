@@ -39,7 +39,7 @@ struct MainView: View {
                         case .createProject:
                             ProjectCreationView(templateStore: templateStore, appSettings: appSettings)
                         case .settings:
-                            SettingsView(settings: appSettings)
+                            SettingsView(settings: appSettings, templateStore: templateStore)
                         }
                     }
                 }

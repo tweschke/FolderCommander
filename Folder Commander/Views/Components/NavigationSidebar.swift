@@ -41,16 +41,6 @@ struct NavigationSidebar: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // App title
-            HStack {
-                Text("Folder Commander")
-                    .font(AppTypography.title2)
-                    .foregroundColor(AppColors.textPrimary)
-                    .padding(.horizontal, AppSpacing.md)
-                    .padding(.top, AppSpacing.md)
-                Spacer()
-            }
-            
             // Navigation items (main)
             VStack(spacing: AppSpacing.sm) {
                 ForEach(NavigationItem.mainItems) { item in

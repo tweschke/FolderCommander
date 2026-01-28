@@ -190,12 +190,13 @@ struct ProjectCreationView: View {
                     .background(AppColors.background)
                 }
             }
-            .navigationTitle("Create Project")
+            .navigationTitle("Folder Commander")
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
+            .standardToolbar(templateStore: templateStore, appSettings: appSettings)
         }
         .frame(minWidth: 900, minHeight: 650)
     }
@@ -230,37 +231,67 @@ struct ProjectCreationView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                List(selection: $selectedTemplate) {
-                    ForEach(templateStore.templates) { template in
-                        HStack(spacing: AppSpacing.md) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                                    .fill(AppColors.primaryGradient.opacity(0.15))
-                                    .frame(width: 40, height: 40)
-                                
-                                Image(systemName: "folder.fill")
-                                    .foregroundStyle(AppColors.primaryGradient)
-                                    .font(.system(size: 18))
-                            }
+                ScrollView {
+                    LazyVStack(spacing: AppSpacing.md) {
+                        ForEach(templateStore.templates) { template in
+                            let isSelected = selectedTemplate?.id == template.id
                             
-                            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                Text(template.name)
-                                    .font(AppTypography.headline)
-                                    .foregroundColor(AppColors.textPrimary)
-                                
-                                Text("\(template.rootItem.getAllItems().count) items")
-                                    .font(AppTypography.caption)
-                                    .foregroundColor(AppColors.textSecondary)
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    selectedTemplate = template
+                                }
+                            } label: {
+                                HStack(spacing: AppSpacing.md) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: AppCornerRadius.small)
+                                            .fill(AppColors.primaryGradient.opacity(0.15))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "folder.fill")
+                                            .foregroundStyle(AppColors.primaryGradient)
+                                            .font(.system(size: 18))
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                                        Text(template.name)
+                                            .font(AppTypography.headline)
+                                            .foregroundColor(AppColors.textPrimary)
+                                        
+                                        Text("\(template.rootItem.getAllItems().count) items")
+                                            .font(AppTypography.caption)
+                                            .foregroundColor(AppColors.textSecondary)
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                .padding(AppSpacing.md)
+                                .background(
+                                    Group {
+                                        if isSelected {
+                                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                                .fill(AppColors.selectedGlowGradient)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                                        .stroke(AppColors.accent.opacity(0.4), lineWidth: 1.5)
+                                                )
+                                                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                                        } else {
+                                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                                .fill(AppColors.surfaceElevated)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                                        .stroke(AppColors.border, lineWidth: 1)
+                                                )
+                                                .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
+                                        }
+                                    }
+                                )
                             }
-                            
-                            Spacer()
+                            .buttonStyle(.plain)
                         }
-                        .padding(.vertical, AppSpacing.xs)
-                        .tag(template)
                     }
+                    .padding(.vertical, AppSpacing.sm)
                 }
-                .listStyle(.sidebar)
-                .scrollContentBackground(.hidden)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

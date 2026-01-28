@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
+    @ObservedObject var templateStore: TemplateStore
     
     var body: some View {
         ScrollView {
@@ -170,6 +171,8 @@ struct SettingsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(AppColors.contentGradient)
+        .standardToolbar(templateStore: templateStore, appSettings: settings)
+        .navigationTitle("Folder Commander")
     }
 }
 
@@ -187,6 +190,6 @@ private extension SettingsView {
 }
 
 #Preview {
-    SettingsView(settings: AppSettings())
+    SettingsView(settings: AppSettings(), templateStore: TemplateStore())
         .frame(width: 800, height: 600)
 }
