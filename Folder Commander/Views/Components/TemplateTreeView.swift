@@ -12,6 +12,9 @@ struct TemplateTreeView: View {
     let appSettings: AppSettings?
     @State private var isExpanded: Bool = true
     
+    // Apple's default folder blue color (matches FolderColorPicker)
+    private static let appleFolderBlue = Color(red: 0.33, green: 0.67, blue: 0.95)
+    
     init(item: FolderItem, appSettings: AppSettings? = nil) {
         self.item = item
         self.appSettings = appSettings
@@ -32,9 +35,9 @@ struct TemplateTreeView: View {
                     let iconName = item.getIconName() ?? (isExpanded ? "folder.fill" : "folder")
                     Image(systemName: iconName)
                         .foregroundStyle(
-                            appSettings?.customColorsEnabled == true
-                                ? AnyShapeStyle(item.getDisplayColor(defaultColor: appSettings?.defaultFolderColor))
-                                : AnyShapeStyle(AppColors.primaryGradient)
+                            item.color != nil
+                                ? AnyShapeStyle(item.getColor() ?? Self.appleFolderBlue)
+                                : AnyShapeStyle(Self.appleFolderBlue)
                         )
                         .font(.system(size: 18, weight: .semibold))
                     

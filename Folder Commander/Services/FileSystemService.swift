@@ -73,13 +73,14 @@ class FileSystemService {
             // Create project root directory
             try fileManager.createDirectory(at: projectURL, withIntermediateDirectories: false, attributes: nil)
             
-            // Apply default folder color/icon to root folder if custom colors are enabled
-            // Wrap in safety check to prevent any crashes from icon operations
-            if let appSettings = appSettings, appSettings.customColorsEnabled {
-                let defaultColor = appSettings.defaultFolderColor
-                // Icon operations are safe but wrap in autoreleasepool for memory management
+            // Apply folder color/icon to root folder ONLY if template explicitly specifies them
+            let rootItem = template.rootItem
+            let hasRootIcon = rootItem.icon != nil
+            let hasRootColor = rootItem.color != nil
+            
+            if hasRootIcon || hasRootColor {
                 autoreleasepool {
-                    applyFolderIcon(to: projectURL, colorHex: defaultColor, iconName: nil, appSettings: appSettings)
+                    applyFolderIcon(to: projectURL, colorHex: rootItem.color, iconName: rootItem.icon, appSettings: appSettings)
                 }
             }
             
@@ -109,31 +110,15 @@ class FileSystemService {
             // Create directory
             try fileManager.createDirectory(at: itemURL, withIntermediateDirectories: false, attributes: nil)
             
-            // Apply folder color/icon
-            // Icons can be applied independently of color settings
-            // Colors only apply if custom colors are enabled
-            // Wrap in safety check to prevent any crashes from icon operations
+            // Apply folder color/icon if template explicitly specifies them
+            // Colors and icons are applied independently - both are optional
             let hasCustomIcon = item.icon != nil
-            let shouldApplyColor = appSettings?.customColorsEnabled == true
-            let shouldApplyIcon = hasCustomIcon || shouldApplyColor
+            let hasExplicitColor = item.color != nil
             
-            if shouldApplyIcon {
-                let colorHex: String?
-                if shouldApplyColor {
-                    colorHex = item.color ?? appSettings?.defaultFolderColor
-                } else {
-                    colorHex = nil // Don't apply color if colors are disabled
-                }
-                let iconName = item.icon
-                // Icon operations are safe but wrap in autoreleasepool for memory management
+            // Apply icon and/or color if needed
+            if hasCustomIcon || hasExplicitColor {
                 autoreleasepool {
-                    applyFolderIcon(to: itemURL, colorHex: colorHex, iconName: iconName, appSettings: appSettings)
-                }
-            } else if hasCustomIcon {
-                // Apply icon even if colors are disabled and appSettings is nil
-                // This ensures icons work independently
-                autoreleasepool {
-                    applyFolderIcon(to: itemURL, colorHex: nil, iconName: item.icon, appSettings: nil)
+                    applyFolderIcon(to: itemURL, colorHex: item.color, iconName: item.icon, appSettings: appSettings)
                 }
             }
             

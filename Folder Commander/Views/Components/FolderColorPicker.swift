@@ -10,8 +10,11 @@ import SwiftUI
 struct FolderColorPicker: View {
     @Binding var selectedColorHex: String?
     let defaultColorHex: String?
-    @State private var showingCustomColorPicker = false
+    @State private var showingColorBrowser = false
     @State private var customColor: Color = .blue
+    
+    // Apple's default folder blue color (approximate)
+    private static let appleFolderBlue = Color(red: 0.33, green: 0.67, blue: 0.95)
     
     // Preset colors palette
     private let presetColors: [(name: String, hex: String)] = [
@@ -37,17 +40,30 @@ struct FolderColorPicker: View {
             
             // Current color preview
             HStack(spacing: AppSpacing.md) {
-                Circle()
-                    .fill(displayColor)
-                    .frame(width: 32, height: 32)
-                    .overlay(
-                        Circle()
-                            .stroke(AppColors.border, lineWidth: 1)
-                    )
-                
-                Text(colorLabel)
-                    .font(AppTypography.body)
-                    .foregroundColor(AppColors.textPrimary)
+                if let hex = selectedColorHex, let color = Color(hex: hex) {
+                    // Show selected color
+                    Circle()
+                        .fill(color)
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Circle()
+                                .stroke(AppColors.border, lineWidth: 1)
+                        )
+                    
+                    Text(colorLabel)
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.textPrimary)
+                } else {
+                    // Show Apple default folder icon
+                    Image(systemName: "folder.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(Self.appleFolderBlue)
+                        .frame(width: 32, height: 32)
+                    
+                    Text("Apple Default")
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.textSecondary)
+                }
                 
                 Spacer()
             }
@@ -61,77 +77,49 @@ struct FolderColorPicker: View {
                     )
             )
             
-            // Preset colors grid
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: AppSpacing.sm) {
-                    // Default option
-                    ColorOptionButton(
-                        color: nil,
-                        label: "Default",
-                        isSelected: selectedColorHex == nil,
-                        defaultColorHex: defaultColorHex
-                    ) {
-                        selectedColorHex = nil
-                    }
-                    
-                    // Preset colors
-                    ForEach(presetColors, id: \.hex) { preset in
-                        ColorOptionButton(
-                            color: Color(hex: preset.hex),
-                            label: preset.name,
-                            isSelected: selectedColorHex == preset.hex,
-                            defaultColorHex: defaultColorHex
-                        ) {
-                            selectedColorHex = preset.hex
-                        }
-                    }
-                    
-                    // Custom color option
+            // Clear and Change buttons (mirrors FolderIconPicker pattern)
+            HStack(spacing: AppSpacing.md) {
+                // Clear button (only show if color is selected)
+                if selectedColorHex != nil {
                     Button(action: {
-                        if let hex = selectedColorHex, let color = Color(hex: hex) {
-                            customColor = color
-                        }
-                        showingCustomColorPicker = true
+                        selectedColorHex = nil
                     }) {
-                        HStack(spacing: AppSpacing.xs) {
-                            Image(systemName: "paintpalette.fill")
-                                .font(.system(size: 12))
-                            Text("Custom")
-                                .font(AppTypography.caption)
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                            Text("Clear Color")
+                                .font(AppTypography.body)
                         }
-                        .foregroundColor(AppColors.textSecondary)
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.vertical, AppSpacing.sm)
-                        .background(
-                            RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                                .fill(AppColors.surface)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                                        .stroke(AppColors.border, lineWidth: 1)
-                                )
-                        )
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
+                    .secondaryButton()
                 }
-                .padding(.horizontal, AppSpacing.xs)
+                
+                // Browse/Change button
+                Button(action: {
+                    if let hex = selectedColorHex, let color = Color(hex: hex) {
+                        customColor = color
+                    }
+                    showingColorBrowser = true
+                }) {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: selectedColorHex != nil ? "pencil.circle.fill" : "plus.circle.fill")
+                            .font(.system(size: 16))
+                        Text(selectedColorHex != nil ? "Change Color" : "Select Color")
+                            .font(AppTypography.body)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .primaryButton()
             }
         }
-        .sheet(isPresented: $showingCustomColorPicker) {
-            CustomColorPickerSheet(
-                color: $customColor,
-                selectedColorHex: $selectedColorHex
+        .sheet(isPresented: $showingColorBrowser) {
+            ColorBrowserSheet(
+                selectedColorHex: $selectedColorHex,
+                customColor: $customColor,
+                presetColors: presetColors
             )
         }
-    }
-    
-    private var displayColor: Color {
-        if let hex = selectedColorHex, let color = Color(hex: hex) {
-            return color
-        }
-        if let defaultHex = defaultColorHex, let color = Color(hex: defaultHex) {
-            return color
-        }
-        return AppColors.primary
     }
     
     private var colorLabel: String {
@@ -141,32 +129,109 @@ struct FolderColorPicker: View {
             }
             return "Custom"
         }
-        return "Default"
+        return "Apple Default"
+    }
+}
+
+struct ColorBrowserSheet: View {
+    @Binding var selectedColorHex: String?
+    @Binding var customColor: Color
+    let presetColors: [(name: String, hex: String)]
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingCustomPicker = false
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: AppSpacing.lg) {
+                // Preset colors grid
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    Text("Preset Colors")
+                        .font(AppTypography.headline)
+                        .foregroundColor(AppColors.textSecondary)
+                    
+                    LazyVGrid(columns: [
+                        GridItem(.adaptive(minimum: 70), spacing: AppSpacing.md)
+                    ], spacing: AppSpacing.md) {
+                        ForEach(presetColors, id: \.hex) { preset in
+                            ColorOptionButton(
+                                color: Color(hex: preset.hex) ?? .gray,
+                                label: preset.name,
+                                isSelected: selectedColorHex == preset.hex
+                            ) {
+                                selectedColorHex = preset.hex
+                            }
+                        }
+                    }
+                }
+                .padding(AppSpacing.lg)
+                
+                Divider()
+                    .background(AppColors.border)
+                
+                // Custom color section
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    Text("Custom Color")
+                        .font(AppTypography.headline)
+                        .foregroundColor(AppColors.textSecondary)
+                    
+                    HStack(spacing: AppSpacing.md) {
+                        // Color preview
+                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                            .fill(customColor)
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
+                                    .stroke(AppColors.border, lineWidth: 1)
+                            )
+                        
+                        // Native color picker
+                        ColorPicker("Pick a color", selection: $customColor, supportsOpacity: false)
+                            .labelsHidden()
+                        
+                        Spacer()
+                        
+                        Button("Apply Custom") {
+                            selectedColorHex = customColor.toHex()
+                        }
+                        .secondaryButton()
+                    }
+                }
+                .padding(AppSpacing.lg)
+                
+                Spacer()
+            }
+            .background(AppColors.contentGradient)
+            .navigationTitle("Select Folder Color")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .tertiaryButton()
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .primaryButton()
+                }
+            }
+        }
+        .frame(width: 500, height: 450)
     }
 }
 
 struct ColorOptionButton: View {
-    let color: Color?
+    let color: Color
     let label: String
     let isSelected: Bool
-    let defaultColorHex: String?
     let action: () -> Void
-    
-    private var displayColor: Color {
-        if let color = color {
-            return color
-        }
-        if let defaultHex = defaultColorHex, let defaultColor = Color(hex: defaultHex) {
-            return defaultColor
-        }
-        return AppColors.primary
-    }
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: AppSpacing.xs) {
                 Circle()
-                    .fill(displayColor)
+                    .fill(color)
                     .frame(width: 40, height: 40)
                     .overlay(
                         Circle()
@@ -186,59 +251,6 @@ struct ColorOptionButton: View {
             }
         }
         .buttonStyle(.plain)
-    }
-}
-
-struct CustomColorPickerSheet: View {
-    @Binding var color: Color
-    @Binding var selectedColorHex: String?
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: AppSpacing.lg) {
-                // Color preview
-                RoundedRectangle(cornerRadius: AppCornerRadius.large)
-                    .fill(color)
-                    .frame(height: 200)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppCornerRadius.large)
-                            .stroke(AppColors.border, lineWidth: 2)
-                    )
-                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                
-                // Native color picker
-                ColorPicker("Select Color", selection: $color, supportsOpacity: false)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                            .fill(AppColors.surfaceElevated)
-                    )
-                
-                Spacer()
-            }
-            .padding(AppSpacing.lg)
-            .background(AppColors.contentGradient)
-            .navigationTitle("Custom Color")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .tertiaryButton()
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        selectedColorHex = color.toHex()
-                        dismiss()
-                    }
-                    .primaryButton()
-                }
-            }
-        }
-        .frame(width: 500, height: 400)
     }
 }
 

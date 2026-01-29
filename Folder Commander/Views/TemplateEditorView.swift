@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+// Apple's default folder blue color (consistent across all views)
+private let appleFolderBlue = Color(red: 0.33, green: 0.67, blue: 0.95)
+
 struct TemplateEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var templateStore: TemplateStore
@@ -296,7 +299,11 @@ struct VisualEditorView: View {
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
                         HStack(spacing: AppSpacing.sm) {
                             Image(systemName: selected.type == .folder ? "folder.fill" : "doc.fill")
-                                .foregroundStyle(selected.type == .folder ? AppColors.primaryGradient : LinearGradient(colors: [AppColors.textSecondary, AppColors.textTertiary], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .foregroundStyle(
+                                    selected.type == .folder
+                                        ? AnyShapeStyle(selected.getColor() ?? appleFolderBlue)
+                                        : AnyShapeStyle(LinearGradient(colors: [AppColors.textSecondary, AppColors.textTertiary], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                )
                                 .font(.system(size: 18, weight: .semibold))
                             
                             Text("Selected")
@@ -394,9 +401,9 @@ struct EditableTreeView: View {
                     let iconName = item.getIconName() ?? (isExpanded ? "folder.fill" : "folder")
                     Image(systemName: iconName)
                         .foregroundStyle(
-                            appSettings.customColorsEnabled
-                                ? AnyShapeStyle(item.getDisplayColor(defaultColor: appSettings.defaultFolderColor))
-                                : AnyShapeStyle(AppColors.primaryGradient)
+                            item.color != nil
+                                ? AnyShapeStyle(item.getColor() ?? appleFolderBlue)
+                                : AnyShapeStyle(appleFolderBlue)
                         )
                         .font(.system(size: 18, weight: .semibold))
                     
@@ -672,11 +679,11 @@ struct ItemEditorView: View {
                         }
                     }
                     
-                    // Color picker (only for folders and when custom colors enabled)
-                    if type == .folder && appSettings.customColorsEnabled {
+                    // Color picker (only for folders)
+                    if type == .folder {
                         FolderColorPicker(
                             selectedColorHex: $color,
-                            defaultColorHex: appSettings.defaultFolderColor
+                            defaultColorHex: nil
                         )
                     }
                     
