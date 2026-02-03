@@ -32,6 +32,44 @@ class FileSystemService {
     private let fileManager = FileManager.default
     private let workspace = NSWorkspace.shared
     
+    private struct TokenContext {
+        let projectName: String
+        let parentName: String
+        let currentName: String
+        let relativePath: String
+        let creationDate: String
+    }
+    
+    private static let creationDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "dd MMMM yyyy"
+        return formatter
+    }()
+    
+    private func creationDateString(from date: Date = Date()) -> String {
+        Self.creationDateFormatter.string(from: date)
+    }
+    
+    private func resolveTokens(in text: String, context: TokenContext) -> String {
+        guard !text.isEmpty else { return text }
+        
+        let replacements: [String: String] = [
+            "{{projectName}}": context.projectName,
+            "{{parentName}}": context.parentName,
+            "{{currentName}}": context.currentName,
+            "{{relativePath}}": context.relativePath,
+            "{{creationDate}}": context.creationDate
+        ]
+        
+        var resolved = text
+        for (token, value) in replacements {
+            resolved = resolved.replacingOccurrences(of: token, with: value)
+        }
+        
+        return resolved
+    }
+    
     /// Creates a project structure from a template at the specified location
     /// - Parameters:
     ///   - template: The template to use
@@ -63,6 +101,7 @@ class FileSystemService {
         
         // Start accessing security-scoped resource if needed
         let accessing = parentURL.startAccessingSecurityScopedResource()
+        let creationDate = creationDateString()
         defer {
             if accessing {
                 parentURL.stopAccessingSecurityScopedResource()
@@ -87,7 +126,14 @@ class FileSystemService {
             // Create children of rootItem directly (skip the root folder itself)
             if let children = template.rootItem.children {
                 for child in children {
-                    try await createItem(child, at: projectURL, appSettings: appSettings)
+                    try await createItem(
+                        child,
+                        at: projectURL,
+                        projectName: projectName,
+                        parentRelativePath: "",
+                        creationDate: creationDate,
+                        appSettings: appSettings
+                    )
                 }
             }
             
@@ -102,8 +148,39 @@ class FileSystemService {
     }
     
     /// Recursively creates folders and files from a FolderItem
-    private func createItem(_ item: FolderItem, at parentURL: URL, appSettings: AppSettings? = nil) async throws {
-        let itemURL = parentURL.appendingPathComponent(item.name, isDirectory: item.type == .folder)
+    private func createItem(
+        _ item: FolderItem,
+        at parentURL: URL,
+        projectName: String,
+        parentRelativePath: String,
+        creationDate: String,
+        appSettings: AppSettings? = nil
+    ) async throws {
+        let parentName = parentURL.lastPathComponent
+        let nameContext = TokenContext(
+            projectName: projectName,
+            parentName: parentName,
+            currentName: item.name,
+            relativePath: parentRelativePath,
+            creationDate: creationDate
+        )
+        let resolvedName = resolveTokens(in: item.name, context: nameContext)
+        let itemURL = parentURL.appendingPathComponent(resolvedName, isDirectory: item.type == .folder)
+        
+        if fileManager.fileExists(atPath: itemURL.path) {
+            throw FileSystemError.fileAlreadyExists(itemURL.path)
+        }
+        
+        let contentContext = TokenContext(
+            projectName: projectName,
+            parentName: parentName,
+            currentName: resolvedName,
+            relativePath: parentRelativePath,
+            creationDate: creationDate
+        )
+        let currentRelativePath = parentRelativePath.isEmpty
+            ? resolvedName
+            : "\(parentRelativePath)/\(resolvedName)"
         
         switch item.type {
         case .folder:
@@ -125,13 +202,20 @@ class FileSystemService {
             // Create children recursively
             if let children = item.children {
                 for child in children {
-                    try await createItem(child, at: itemURL, appSettings: appSettings)
+                    try await createItem(
+                        child,
+                        at: itemURL,
+                        projectName: projectName,
+                        parentRelativePath: currentRelativePath,
+                        creationDate: creationDate,
+                        appSettings: appSettings
+                    )
                 }
             }
             
         case .file:
             // Create file with optional content
-            let content = item.content ?? ""
+            let content = resolveTokens(in: item.content ?? "", context: contentContext)
             let data = content.data(using: .utf8) ?? Data()
             try data.write(to: itemURL, options: .atomic)
         }

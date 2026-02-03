@@ -72,8 +72,15 @@ struct AppMenuCommands: Commands {
             }
         }
         
-        // Settings Menu (macOS 13+)
-        CommandGroup(after: .appSettings) {
+        // Settings Menu
+        CommandMenu("Settings") {
+            Button("Shortcuts") {
+                NotificationCenter.default.post(name: .openShortcuts, object: nil)
+            }
+            .keyboardShortcut("s", modifiers: [.command, .option])
+            
+            Divider()
+            
             Button("Backups...") {
                 NotificationCenter.default.post(name: .openSettings, object: nil)
             }
@@ -91,4 +98,5 @@ extension Notification.Name {
     static let exportTemplate = Notification.Name("exportTemplate")
     static let selectAll = Notification.Name("selectAll")
     static let openSettings = Notification.Name("openSettings")
+    static let openShortcuts = Notification.Name("openShortcuts")
 }

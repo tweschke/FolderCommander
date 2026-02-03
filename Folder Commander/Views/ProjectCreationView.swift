@@ -208,7 +208,7 @@ struct ProjectCreationView: View {
                     .padding(.bottom, AppSpacing.lg)
                 }
             }
-            .navigationTitle("Create Project")
+            .navigationTitle("Folder Commander")
             .errorAlert()
             .standardToolbar(templateStore: templateStore, appSettings: appSettings)
         }

@@ -10,6 +10,7 @@ import SwiftUI
 enum NavigationItem: String, CaseIterable, Identifiable {
     case templates = "Templates"
     case createProject = "Create Project"
+    case shortcuts = "Shortcuts"
     case settings = "Backups"
     
     var id: String { rawValue }
@@ -20,6 +21,8 @@ enum NavigationItem: String, CaseIterable, Identifiable {
             return "folder.fill"
         case .createProject:
             return "folder.badge.plus"
+        case .shortcuts:
+            return "curlybraces"
         case .settings:
             return "externaldrive.fill"
         }
@@ -32,7 +35,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
     
     /// Navigation items that appear at the bottom (settings/utilities)
     static var bottomItems: [NavigationItem] {
-        [.settings]
+        [.shortcuts, .settings]
     }
 }
 
@@ -110,6 +113,8 @@ struct NavigationItemView: View {
             return "Shows your folder structure templates"
         case .createProject:
             return "Opens the project creation wizard"
+        case .shortcuts:
+            return "Shows available shortcut tokens"
         case .settings:
             return "Opens backup and restore tools"
         }

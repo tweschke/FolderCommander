@@ -89,7 +89,6 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(AppColors.contentGradient)
         .standardToolbar(templateStore: templateStore, appSettings: settings)
-        .navigationTitle("Backups")
         .fileImporter(
             isPresented: $showingImport,
             allowedContentTypes: [.json],

@@ -39,6 +39,8 @@ struct MainView: View {
                             TemplatesView(templateStore: templateStore, appSettings: appSettings)
                         case .createProject:
                             ProjectCreationView(templateStore: templateStore, appSettings: appSettings)
+                        case .shortcuts:
+                            ShortcutsView(appSettings: appSettings, templateStore: templateStore)
                         case .settings:
                             SettingsView(settings: appSettings, templateStore: templateStore)
                         }
@@ -46,6 +48,7 @@ struct MainView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .background(AppColors.contentGradient)
+                .navigationTitle("Folder Commander")
             }
         }
         .background(AppColors.background)
@@ -63,6 +66,9 @@ struct MainView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
             selectedNavigationItem = .settings
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openShortcuts)) { _ in
+            selectedNavigationItem = .shortcuts
         }
     }
 }
