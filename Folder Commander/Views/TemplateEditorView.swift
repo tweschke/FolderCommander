@@ -50,9 +50,15 @@ struct TemplateEditorView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            VStack(spacing: AppSpacing.md) {
                 // Template name input
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    SectionHeader(
+                        title: "Template Details",
+                        systemImage: "pencil.and.outline",
+                        subtitle: "Name and structure settings"
+                    )
+                    
                     Text("Template Name")
                         .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
@@ -68,16 +74,16 @@ struct TemplateEditorView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: AppCornerRadius.medium)
                                         .stroke(
-                                            templateName.isEmpty 
-                                                ? AppColors.border 
+                                            templateName.isEmpty
+                                                ? AppColors.border
                                                 : AppColors.accent.opacity(0.5),
                                             lineWidth: 2
                                         )
                                 )
                         )
                         .shadow(
-                            color: templateName.isEmpty 
-                                ? Color.clear 
+                            color: templateName.isEmpty
+                                ? Color.clear
                                 : AppColors.accent.opacity(0.1),
                             radius: 4,
                             x: 0,
@@ -86,24 +92,28 @@ struct TemplateEditorView: View {
                         .appShadow(AppShadow.small)
                 }
                 .padding(AppSpacing.lg)
-                .background(AppColors.background)
-                
-                Divider()
-                    .background(AppColors.border)
+                .dashboardCardStyle()
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.lg)
                 
                 // Mode selector
-                Picker("Editor Mode", selection: $editorMode) {
-                    Label("Visual Editor", systemImage: "square.grid.2x2").tag(EditorMode.visual)
-                    Label("Text Input", systemImage: "text.alignleft").tag(EditorMode.text)
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    SectionHeader(
+                        title: "Editor Mode",
+                        systemImage: "slider.horizontal.3",
+                        subtitle: "Choose visual or text input"
+                    )
+                    
+                    Picker("Editor Mode", selection: $editorMode) {
+                        Label("Visual Editor", systemImage: "square.grid.2x2").tag(EditorMode.visual)
+                        Label("Text Input", systemImage: "text.alignleft").tag(EditorMode.text)
+                    }
+                    .pickerStyle(.segmented)
+                    .tint(AppColors.accent)
                 }
-                .pickerStyle(.segmented)
-                .tint(AppColors.accent)
+                .padding(AppSpacing.lg)
+                .dashboardCardStyle()
                 .padding(.horizontal, AppSpacing.lg)
-                .padding(.vertical, AppSpacing.md)
-                .background(AppColors.background)
-                
-                Divider()
-                    .background(AppColors.border)
                 
                 // Editor content
                 if editorMode == .visual {
@@ -216,53 +226,65 @@ struct VisualEditorView: View {
     @ObservedObject var appSettings: AppSettings
     
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: AppSpacing.lg) {
             // Tree view - show children of rootItem directly, not rootItem itself
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    if let children = rootItem.children, !children.isEmpty {
-                        ForEach(children) { child in
-                            EditableTreeView(
-                                item: child,
-                                selectedItem: $selectedItem,
-                                editingItem: $editingItem,
-                                showingItemEditor: $showingItemEditor,
-                                rootItem: $rootItem,
-                                appSettings: appSettings
-                            )
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                SectionHeader(
+                    title: "Structure",
+                    systemImage: "list.bullet.rectangle",
+                    subtitle: "Folders and files"
+                )
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let children = rootItem.children, !children.isEmpty {
+                            ForEach(children) { child in
+                                EditableTreeView(
+                                    item: child,
+                                    selectedItem: $selectedItem,
+                                    editingItem: $editingItem,
+                                    showingItemEditor: $showingItemEditor,
+                                    rootItem: $rootItem,
+                                    appSettings: appSettings
+                                )
+                            }
+                        } else {
+                            VStack(spacing: AppSpacing.md) {
+                                Image(systemName: "folder.badge.plus")
+                                    .font(.system(size: 48, weight: .ultraLight))
+                                    .foregroundStyle(AppColors.textTertiary)
+                                
+                                Text("No items yet")
+                                    .font(AppTypography.subheadline)
+                                    .foregroundColor(AppColors.textSecondary)
+                                
+                                Text("Click 'Add Item' to create your first folder or file")
+                                    .font(AppTypography.caption)
+                                    .foregroundColor(AppColors.textTertiary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 240)
+                            .padding(AppSpacing.xl)
                         }
-                    } else {
-                        VStack(spacing: AppSpacing.md) {
-                            Image(systemName: "folder.badge.plus")
-                                .font(.system(size: 48, weight: .ultraLight))
-                                .foregroundStyle(AppColors.textTertiary)
-                            
-                            Text("No items yet")
-                                .font(AppTypography.subheadline)
-                                .foregroundColor(AppColors.textSecondary)
-                            
-                            Text("Click 'Add Item' to create your first folder or file")
-                                .font(AppTypography.caption)
-                                .foregroundColor(AppColors.textTertiary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(AppSpacing.xl)
                     }
+                    .padding(.vertical, AppSpacing.sm)
                 }
-                .padding()
             }
+            .padding(AppSpacing.lg)
+            .dashboardCardStyle()
             .frame(maxWidth: .infinity)
-            .background(AppColors.contentGradient)
-            
-            Divider()
-                .background(AppColors.border)
             
             // Action buttons
-            VStack(spacing: AppSpacing.md) {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                SectionHeader(
+                    title: "Actions",
+                    systemImage: "bolt.fill",
+                    subtitle: "Add or delete items"
+                )
+                
                 Button(action: {
                     // Add to selected folder if one is selected and it's a folder, otherwise add to root container
-                    if let selected = selectedItem, 
+                    if let selected = selectedItem,
                        selected.type == .folder {
                         addItem(to: selected)
                     } else {
@@ -292,11 +314,10 @@ struct VisualEditorView: View {
                 .destructiveButton(enabled: selectedItem != nil)
                 .disabled(selectedItem == nil)
                 
-                Spacer()
-                
-                // Show selected item info
                 if let selected = selectedItem {
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        SectionHeader(title: "Selection", systemImage: "cursorarrow.rays", compact: true)
+                        
                         HStack(spacing: AppSpacing.sm) {
                             Image(systemName: selected.type == .folder ? "folder.fill" : "doc.fill")
                                 .foregroundStyle(
@@ -321,13 +342,17 @@ struct VisualEditorView: View {
                     }
                     .padding(AppSpacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .glassCardStyle()
+                    .dashboardCardStyle()
                 }
+                
+                Spacer()
             }
             .padding(AppSpacing.lg)
-            .frame(width: 220)
-            .background(AppColors.background)
+            .frame(width: 240)
+            .dashboardCardStyle()
         }
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.bottom, AppSpacing.lg)
         .background(AppColors.contentGradient)
     }
     
@@ -543,17 +568,11 @@ struct TextEditorView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "text.alignleft")
-                    .foregroundStyle(AppColors.primaryGradient)
-                    .font(.system(size: 18))
-                
-                Text("Enter folder structure (use indentation for nesting):")
-                    .font(AppTypography.subheadline)
-                    .foregroundColor(AppColors.textSecondary)
-            }
-            .padding(.horizontal, AppSpacing.lg)
-            .padding(.top, AppSpacing.md)
+            SectionHeader(
+                title: "Text Input",
+                systemImage: "text.alignleft",
+                subtitle: "Use indentation for nesting"
+            )
             
             TextEditor(text: $textInput)
                 .font(.system(.body, design: .monospaced))
@@ -566,9 +585,11 @@ struct TextEditorView: View {
                                 .stroke(AppColors.border, lineWidth: 1)
                         )
                 )
-                .padding(.horizontal, AppSpacing.lg)
-                .padding(.bottom, AppSpacing.md)
         }
+        .padding(AppSpacing.lg)
+        .dashboardCardStyle()
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.bottom, AppSpacing.lg)
         .background(AppColors.contentGradient)
         .onChange(of: textInput) { _, newValue in
             // Defer the update to avoid publishing changes during view updates
@@ -611,7 +632,9 @@ struct ItemEditorView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        SectionHeader(title: "Basics", systemImage: "pencil", subtitle: "Name and type")
+                        
                         Text("Name")
                             .font(AppTypography.caption)
                             .foregroundColor(AppColors.textSecondary)
@@ -627,25 +650,23 @@ struct ItemEditorView: View {
                                     .overlay(
                                         RoundedRectangle(cornerRadius: AppCornerRadius.medium)
                                             .stroke(
-                                                name.isEmpty 
-                                                    ? AppColors.border 
+                                                name.isEmpty
+                                                    ? AppColors.border
                                                     : AppColors.accent.opacity(0.5),
                                                 lineWidth: 2
                                             )
                                     )
                             )
                             .shadow(
-                                color: name.isEmpty 
-                                    ? Color.clear 
+                                color: name.isEmpty
+                                    ? Color.clear
                                     : AppColors.accent.opacity(0.1),
                                 radius: 4,
                                 x: 0,
                                 y: 2
                             )
                             .appShadow(AppShadow.small)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        
                         Text("Type")
                             .font(AppTypography.caption)
                             .foregroundColor(AppColors.textSecondary)
@@ -657,12 +678,12 @@ struct ItemEditorView: View {
                         .pickerStyle(.segmented)
                         .tint(AppColors.accent)
                     }
+                    .padding(AppSpacing.lg)
+                    .dashboardCardStyle()
                     
                     if type == .file {
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            Text("Content (optional)")
-                                .font(AppTypography.caption)
-                                .foregroundColor(AppColors.textSecondary)
+                        VStack(alignment: .leading, spacing: AppSpacing.md) {
+                            SectionHeader(title: "File Content", systemImage: "doc.plaintext", subtitle: "Optional text")
                             
                             TextEditor(text: $content)
                                 .font(.system(.body, design: .monospaced))
@@ -677,19 +698,23 @@ struct ItemEditorView: View {
                                         )
                                 )
                         }
+                        .padding(AppSpacing.lg)
+                        .dashboardCardStyle()
                     }
                     
-                    // Color picker (only for folders)
                     if type == .folder {
-                        FolderColorPicker(
-                            selectedColorHex: $color,
-                            defaultColorHex: nil
-                        )
-                    }
-                    
-                    // Icon picker (only for folders)
-                    if type == .folder {
-                        FolderIconPicker(selectedIconName: $icon)
+                        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                            SectionHeader(title: "Folder Appearance", systemImage: "paintpalette.fill", subtitle: "Color and icon")
+                            
+                            FolderColorPicker(
+                                selectedColorHex: $color,
+                                defaultColorHex: nil
+                            )
+                            
+                            FolderIconPicker(selectedIconName: $icon)
+                        }
+                        .padding(AppSpacing.lg)
+                        .dashboardCardStyle()
                     }
                 }
                 .padding(AppSpacing.lg)

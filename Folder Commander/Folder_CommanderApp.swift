@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 @main
 struct Folder_CommanderApp: App {
@@ -14,6 +15,12 @@ struct Folder_CommanderApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(appSettings: appSettings)
+                .preferredColorScheme(.dark)
+                .onAppear {
+                    if let app = NSApp {
+                        app.appearance = NSAppearance(named: .darkAqua)
+                    }
+                }
         }
         .defaultSize(width: 1400, height: 900)
         .windowToolbarStyle(.unified)

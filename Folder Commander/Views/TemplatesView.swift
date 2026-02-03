@@ -20,68 +20,77 @@ struct TemplatesView: View {
         GeometryReader { geometry in
             let maxTemplateListWidth = geometry.size.width - 200
             
-            HStack(spacing: 0) {
+            HStack(spacing: AppSpacing.lg) {
                 // Template list
-                ScrollView {
-                    LazyVStack(spacing: AppSpacing.md) {
-                        if templateStore.templates.isEmpty {
-                            VStack(spacing: AppSpacing.lg) {
-                                ZStack {
-                                    Circle()
-                                        .fill(AppColors.primaryGradient.opacity(0.2))
-                                        .frame(width: 120, height: 120)
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    SectionHeader(
+                        title: "Templates",
+                        systemImage: "square.grid.2x2",
+                        subtitle: "\(templateStore.templates.count) templates"
+                    )
+                    
+                    ScrollView {
+                        LazyVStack(spacing: AppSpacing.lg) {
+                            if templateStore.templates.isEmpty {
+                                VStack(spacing: AppSpacing.lg) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(AppColors.primaryGradient.opacity(0.2))
+                                            .frame(width: 120, height: 120)
+                                        
+                                        Image(systemName: "folder.badge.questionmark")
+                                            .font(.system(size: 56, weight: .light))
+                                            .foregroundStyle(AppColors.primaryGradient)
+                                    }
                                     
-                                    Image(systemName: "folder.badge.questionmark")
-                                        .font(.system(size: 56, weight: .light))
-                                        .foregroundStyle(AppColors.primaryGradient)
-                                }
-                                
-                                VStack(spacing: AppSpacing.sm) {
-                                    Text("No Templates")
-                                        .font(AppTypography.title2)
-                                        .foregroundColor(AppColors.textPrimary)
+                                    VStack(spacing: AppSpacing.sm) {
+                                        Text("No Templates")
+                                            .font(AppTypography.title2)
+                                            .foregroundColor(AppColors.textPrimary)
+                                        
+                                        Text("Create your first template to get started")
+                                            .font(AppTypography.subheadline)
+                                            .foregroundColor(AppColors.textSecondary)
+                                            .multilineTextAlignment(.center)
+                                    }
                                     
-                                    Text("Create your first template to get started")
+                                    Text("Use the toolbar above to create a new template.")
                                         .font(AppTypography.subheadline)
                                         .foregroundColor(AppColors.textSecondary)
-                                        .multilineTextAlignment(.center)
                                 }
-                                
-                                Text("Use the toolbar above to create a new template.")
-                                    .font(AppTypography.subheadline)
-                                    .foregroundColor(AppColors.textSecondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(AppSpacing.xl)
-                        } else {
-                            ForEach(templateStore.templates) { template in
-                                TemplateCardView(
-                                    template: template,
-                                    isSelected: selectedTemplate?.id == template.id,
-                                    onSelect: {
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                            selectedTemplate = template
+                                .frame(maxWidth: .infinity)
+                                .padding(AppSpacing.xl)
+                            } else {
+                                ForEach(templateStore.templates) { template in
+                                    TemplateCardView(
+                                        template: template,
+                                        isSelected: selectedTemplate?.id == template.id,
+                                        onSelect: {
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                                selectedTemplate = template
+                                            }
+                                        },
+                                        onEdit: {
+                                            editingTemplate = template
+                                        },
+                                        onExport: {
+                                            exportTemplate(template)
+                                        },
+                                        onDelete: {
+                                            templateStore.deleteTemplate(template)
                                         }
-                                    },
-                                    onEdit: {
-                                        editingTemplate = template
-                                    },
-                                    onExport: {
-                                        exportTemplate(template)
-                                    },
-                                    onDelete: {
-                                        templateStore.deleteTemplate(template)
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
+                        .padding(.vertical, AppSpacing.sm)
                     }
-                    .padding(AppSpacing.lg)
+                    .scrollIndicators(.hidden) // Reduce rendering overhead
                 }
-                .scrollIndicators(.hidden) // Reduce rendering overhead
+                .padding(AppSpacing.lg)
+                .dashboardCardStyle()
                 .frame(width: templateListWidth)
                 .animation(nil, value: templateListWidth) // Disable animation during resize
-                .background(AppColors.contentGradient)
                 
                 ResizableDivider(
                     width: $templateListWidth,
@@ -90,25 +99,36 @@ struct TemplatesView: View {
                 )
                 
                 // Template detail
-                Group {
-                    if let template = selectedTemplate {
-                        TemplateDetailView(template: template, appSettings: appSettings)
-                    } else {
-                        VStack(spacing: AppSpacing.lg) {
-                            Image(systemName: "doc.text.magnifyingglass")
-                                .font(.system(size: 64, weight: .ultraLight))
-                                .foregroundStyle(AppColors.primaryGradient.opacity(0.5))
-                            
-                            Text("Select a template to preview")
-                                .font(AppTypography.title3)
-                                .foregroundColor(AppColors.textSecondary)
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    SectionHeader(
+                        title: "Preview",
+                        systemImage: "eye.fill",
+                        subtitle: selectedTemplate?.name ?? "Select a template"
+                    )
+                    
+                    Group {
+                        if let template = selectedTemplate {
+                            TemplateDetailView(template: template, appSettings: appSettings)
+                        } else {
+                            VStack(spacing: AppSpacing.lg) {
+                                Image(systemName: "doc.text.magnifyingglass")
+                                    .font(.system(size: 64, weight: .ultraLight))
+                                    .foregroundStyle(AppColors.primaryGradient.opacity(0.5))
+                                
+                                Text("Select a template to preview")
+                                    .font(AppTypography.title3)
+                                    .foregroundColor(AppColors.textSecondary)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
+                .padding(AppSpacing.lg)
+                .dashboardCardStyle()
                 .frame(maxWidth: .infinity)
-                .background(AppColors.contentGradient)
             }
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.lg)
         }
         .navigationTitle("Folder Commander")
         .standardToolbar(templateStore: templateStore, appSettings: appSettings)
@@ -225,27 +245,7 @@ struct TemplateCardView: View {
             }
         }
         .padding(AppSpacing.md)
-        .background(
-            Group {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                        .fill(AppColors.selectedGlowGradient)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                .stroke(AppColors.accent.opacity(0.4), lineWidth: 1.5)
-                        )
-                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                } else {
-                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                        .fill(AppColors.surfaceElevated)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                .stroke(AppColors.border, lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
-                }
-            }
-        )
+        .dashboardCardStyle(isSelected: isSelected)
     }
 }
 

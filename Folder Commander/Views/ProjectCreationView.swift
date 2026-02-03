@@ -46,6 +46,12 @@ struct ProjectCreationView: View {
             VStack(spacing: 0) {
                 // Progress indicator
                 VStack(spacing: AppSpacing.md) {
+                    SectionHeader(
+                        title: "Project Setup",
+                        systemImage: "sparkles",
+                        subtitle: CreationStep.allCases[currentStep.rawValue].title
+                    )
+                    
                     HStack(spacing: AppSpacing.sm) {
                         ForEach(0..<CreationStep.allCases.count, id: \.self) { index in
                             Circle()
@@ -65,17 +71,11 @@ struct ProjectCreationView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, AppSpacing.lg)
-                    
-                    Text(CreationStep.allCases[currentStep.rawValue].title)
-                        .font(AppTypography.headline)
-                        .foregroundColor(AppColors.textPrimary)
                 }
-                .padding(.vertical, AppSpacing.lg)
-                .background(AppColors.background)
-                
-                Divider()
-                    .background(AppColors.border)
+                .padding(AppSpacing.lg)
+                .dashboardCardStyle()
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.lg)
                 
                 // Step content
                 Group {
@@ -102,90 +102,108 @@ struct ProjectCreationView: View {
                 // Navigation buttons
                 if currentStep == .confirmation {
                     // Confirmation step buttons
-                    HStack(spacing: AppSpacing.md) {
-                        Spacer()
-                        
-                        Button(action: {
-                            if let url = createdProjectURL {
-                                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
-                            }
-                        }) {
-                            HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "folder.fill")
-                                Text("Show in Finder")
-                            }
+                    VStack(spacing: AppSpacing.md) {
+                        HStack {
+                            Spacer()
+                            stepChip
                         }
-                        .secondaryButton()
                         
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            HStack(spacing: AppSpacing.sm) {
-                                Text("Done")
-                                Image(systemName: "checkmark.circle.fill")
-                            }
-                        }
-                        .primaryButton()
-                    }
-                    .padding(AppSpacing.lg)
-                    .background(AppColors.background)
-                } else {
-                    // Regular step buttons
-                    HStack(spacing: AppSpacing.md) {
-                        if currentStep != .selectTemplate {
+                        HStack(spacing: AppSpacing.md) {
+                            Spacer()
+                            
                             Button(action: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    goToPreviousStep()
+                                if let url = createdProjectURL {
+                                    NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
                                 }
                             }) {
                                 HStack(spacing: AppSpacing.sm) {
-                                    Image(systemName: "chevron.left")
-                                    Text("Back")
+                                    Image(systemName: "folder.fill")
+                                    Text("Show in Finder")
                                 }
                             }
                             .secondaryButton()
-                        }
-                        
-                        Spacer()
-                        
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                        .tertiaryButton()
-                        
-                        if currentStep == .preview {
-                            Button(action: { createProject() }) {
-                                HStack(spacing: AppSpacing.sm) {
-                                    if isCreating {
-                                        ProgressView()
-                                            .progressViewStyle(.circular)
-                                            .scaleEffect(0.8)
-                                            .tint(.white)
-                                    } else {
-                                        Image(systemName: "checkmark.circle.fill")
-                                    }
-                                    Text("Create Project")
-                                }
-                            }
-                            .primaryButton(enabled: !isCreating && !projectName.isEmpty && destinationURL != nil)
-                            .disabled(isCreating || projectName.isEmpty || destinationURL == nil)
-                        } else {
+                            
                             Button(action: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    goToNextStep()
-                                }
+                                dismiss()
                             }) {
                                 HStack(spacing: AppSpacing.sm) {
-                                    Text("Next")
-                                    Image(systemName: "chevron.right")
+                                    Text("Done")
+                                    Image(systemName: "checkmark.circle.fill")
                                 }
                             }
-                            .primaryButton(enabled: canProceedToNextStep)
-                            .disabled(!canProceedToNextStep)
+                            .primaryButton()
                         }
                     }
                     .padding(AppSpacing.lg)
-                    .background(AppColors.background)
+                    .dashboardCardStyle()
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.bottom, AppSpacing.lg)
+                } else {
+                    // Regular step buttons
+                    VStack(spacing: AppSpacing.md) {
+                        HStack {
+                            Spacer()
+                            stepChip
+                        }
+                        
+                        HStack(spacing: AppSpacing.md) {
+                            if currentStep != .selectTemplate {
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        goToPreviousStep()
+                                    }
+                                }) {
+                                    HStack(spacing: AppSpacing.sm) {
+                                        Image(systemName: "chevron.left")
+                                        Text("Back")
+                                    }
+                                }
+                                .secondaryButton()
+                            }
+                            
+                            Spacer()
+                            
+                            Button("Cancel") {
+                                dismiss()
+                            }
+                            .tertiaryButton()
+                            
+                            if currentStep == .preview {
+                                Button(action: { createProject() }) {
+                                    HStack(spacing: AppSpacing.sm) {
+                                        if isCreating {
+                                            ProgressView()
+                                                .progressViewStyle(.circular)
+                                                .scaleEffect(0.8)
+                                                .tint(.white)
+                                        } else {
+                                            Image(systemName: "checkmark.circle.fill")
+                                        }
+                                        Text("Create Project")
+                                    }
+                                }
+                                .primaryButton(enabled: !isCreating && !projectName.isEmpty && destinationURL != nil)
+                                .disabled(isCreating || projectName.isEmpty || destinationURL == nil)
+                            } else {
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        goToNextStep()
+                                    }
+                                }) {
+                                    HStack(spacing: AppSpacing.sm) {
+                                        Text("Next")
+                                        Image(systemName: "chevron.right")
+                                    }
+                                }
+                                .primaryButton(enabled: canProceedToNextStep)
+                                .disabled(!canProceedToNextStep)
+                            }
+                        }
+                    }
+                    .padding(AppSpacing.lg)
+                    .dashboardCardStyle()
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.bottom, AppSpacing.lg)
                 }
             }
             .navigationTitle("Folder Commander")
@@ -197,17 +215,40 @@ struct ProjectCreationView: View {
     
     // MARK: - Step Views
     
+    private var stepChipLabel: String {
+        currentStep == .confirmation
+            ? "Complete"
+            : "Step \(currentStep.rawValue + 1) of \(CreationStep.allCases.count)"
+    }
+    
+    private var stepChip: some View {
+        HStack(spacing: AppSpacing.xs) {
+            Circle()
+                .fill(AppColors.accent)
+                .frame(width: 6, height: 6)
+            Text(stepChipLabel)
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.textSecondary)
+        }
+        .padding(.horizontal, AppSpacing.sm)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(AppColors.surface)
+                .overlay(
+                    Capsule()
+                        .stroke(AppColors.border, lineWidth: 1)
+                )
+        )
+    }
+    
     private var selectTemplateView: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "doc.text.magnifyingglass")
-                    .foregroundStyle(AppColors.primaryGradient)
-                    .font(.system(size: 20))
-                
-                Text("Choose a template to use for your project:")
-                    .font(AppTypography.headline)
-                    .foregroundColor(AppColors.textPrimary)
-            }
+            SectionHeader(
+                title: "Select Template",
+                systemImage: "doc.text.magnifyingglass",
+                subtitle: "Choose a template to use for your project"
+            )
             
             if templateStore.templates.isEmpty {
                 VStack(spacing: AppSpacing.md) {
@@ -226,7 +267,7 @@ struct ProjectCreationView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(spacing: AppSpacing.md) {
+                    LazyVStack(spacing: AppSpacing.lg) {
                         ForEach(templateStore.templates) { template in
                             let isSelected = selectedTemplate?.id == template.id
                             
@@ -259,27 +300,7 @@ struct ProjectCreationView: View {
                                     Spacer()
                                 }
                                 .padding(AppSpacing.md)
-                                .background(
-                                    Group {
-                                        if isSelected {
-                                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                                .fill(AppColors.selectedGlowGradient)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                                        .stroke(AppColors.accent.opacity(0.4), lineWidth: 1.5)
-                                                )
-                                                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                                        } else {
-                                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                                .fill(AppColors.surfaceElevated)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                                        .stroke(AppColors.border, lineWidth: 1)
-                                                )
-                                                .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
-                                        }
-                                    }
-                                )
+                                .dashboardCardStyle(isSelected: isSelected)
                             }
                             .buttonStyle(.plain)
                         }
@@ -288,20 +309,18 @@ struct ProjectCreationView: View {
                 }
             }
         }
+        .padding(AppSpacing.lg)
+        .dashboardCardStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     
     private var enterNameView: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "text.cursor")
-                    .foregroundStyle(AppColors.primaryGradient)
-                    .font(.system(size: 20))
-                
-                Text("Enter a name for your project:")
-                    .font(AppTypography.headline)
-                    .foregroundColor(AppColors.textPrimary)
-            }
+            SectionHeader(
+                title: "Project Name",
+                systemImage: "text.cursor",
+                subtitle: "Enter a name for your project"
+            )
             
             TextField("Project Name", text: $projectName)
                 .textFieldStyle(.plain)
@@ -343,20 +362,18 @@ struct ProjectCreationView: View {
                     .foregroundColor(AppColors.textSecondary)
             }
         }
+        .padding(AppSpacing.lg)
+        .dashboardCardStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     
     private var selectLocationView: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "folder.fill")
-                    .foregroundStyle(AppColors.primaryGradient)
-                    .font(.system(size: 20))
-                
-                Text("Choose where to create the project:")
-                    .font(AppTypography.headline)
-                    .foregroundColor(AppColors.textPrimary)
-            }
+            SectionHeader(
+                title: "Destination",
+                systemImage: "folder.fill",
+                subtitle: "Choose where to create the project"
+            )
             
             if let url = destinationURL {
                 HStack(spacing: AppSpacing.md) {
@@ -408,20 +425,18 @@ struct ProjectCreationView: View {
             }
             .primaryButton()
         }
+        .padding(AppSpacing.lg)
+        .dashboardCardStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     
     private var previewView: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "eye.fill")
-                    .foregroundStyle(AppColors.primaryGradient)
-                    .font(.system(size: 20))
-                
-                Text("Preview:")
-                    .font(AppTypography.headline)
-                    .foregroundColor(AppColors.textPrimary)
-            }
+            SectionHeader(
+                title: "Preview",
+                systemImage: "eye.fill",
+                subtitle: "Review project details"
+            )
             
             if let template = selectedTemplate {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -472,15 +487,11 @@ struct ProjectCreationView: View {
                 .glassCardStyle()
                 
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    HStack(spacing: AppSpacing.sm) {
-                        Image(systemName: "list.bullet.rectangle")
-                            .foregroundStyle(AppColors.primaryGradient)
-                            .font(.system(size: 18))
-                        
-                        Text("Structure:")
-                            .font(AppTypography.headline)
-                            .foregroundColor(AppColors.textPrimary)
-                    }
+                    SectionHeader(
+                        title: "Structure",
+                        systemImage: "list.bullet.rectangle",
+                        subtitle: "Folders and files"
+                    )
                     
                     ScrollView {
                         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -529,13 +540,18 @@ struct ProjectCreationView: View {
                 .glassCardStyle()
             }
         }
+        .padding(AppSpacing.lg)
+        .dashboardCardStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     
     private var confirmationView: some View {
         VStack(spacing: AppSpacing.xl) {
-            Spacer()
-                .frame(height: AppSpacing.md)
+            SectionHeader(
+                title: "Success",
+                systemImage: "checkmark.seal.fill",
+                subtitle: "Project created"
+            )
             
             // Success icon
             ZStack {
@@ -564,15 +580,11 @@ struct ProjectCreationView: View {
             // Project details card
             if let url = createdProjectURL {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    HStack(spacing: AppSpacing.sm) {
-                        Image(systemName: "folder.fill")
-                            .foregroundStyle(AppColors.primaryGradient)
-                            .font(.system(size: 18))
-                        
-                        Text("Project Location:")
-                            .font(AppTypography.headline)
-                            .foregroundColor(AppColors.textPrimary)
-                    }
+                    SectionHeader(
+                        title: "Project Location",
+                        systemImage: "folder.fill",
+                        subtitle: url.lastPathComponent
+                    )
                     
                     Text(url.path)
                         .font(.system(.body, design: .monospaced))
@@ -581,14 +593,14 @@ struct ProjectCreationView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(AppSpacing.lg)
-                .glassCardStyle()
+                .dashboardCardStyle()
                 .frame(maxWidth: 500)
             }
-            
-            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(AppSpacing.xl)
+        .dashboardCardStyle()
+        .frame(maxWidth: 640)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Navigation

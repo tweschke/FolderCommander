@@ -41,8 +41,31 @@ struct NavigationSidebar: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                HStack(spacing: AppSpacing.sm) {
+                    IconChip(systemName: "folder.fill", size: 30)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Folder Commander")
+                            .font(AppTypography.headline)
+                            .foregroundColor(AppColors.textPrimary)
+                        
+                        Text("Workspace")
+                            .font(AppTypography.caption)
+                            .foregroundColor(AppColors.textSecondary)
+                    }
+                }
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.top, AppSpacing.lg)
+            .padding(.bottom, AppSpacing.sm)
+            
+            SectionHeader(title: "Workspace", systemImage: "square.grid.2x2", compact: true)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.bottom, AppSpacing.sm)
+            
             // Navigation items (main)
-            VStack(spacing: AppSpacing.sm) {
+            VStack(spacing: AppSpacing.xs) {
                 ForEach(NavigationItem.mainItems) { item in
                     NavigationItemView(
                         item: item,
@@ -54,16 +77,19 @@ struct NavigationSidebar: View {
                     }
                 }
             }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.top, AppSpacing.lg)
+            .padding(.horizontal, AppSpacing.sm)
             
             Spacer()
             
             // Navigation items (bottom - settings)
             VStack(spacing: AppSpacing.sm) {
                 Divider()
-                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.horizontal, AppSpacing.sm)
                     .padding(.vertical, AppSpacing.sm)
+                
+                SectionHeader(title: "Settings", systemImage: "gearshape.fill", compact: true)
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.bottom, AppSpacing.xs)
                 
                 ForEach(NavigationItem.bottomItems) { item in
                     NavigationItemView(
@@ -76,11 +102,18 @@ struct NavigationSidebar: View {
                     }
                 }
             }
-            .padding(.horizontal, AppSpacing.md)
+            .padding(.horizontal, AppSpacing.sm)
             .padding(.bottom, AppSpacing.md)
         }
         .frame(maxWidth: .infinity)
         .background(AppColors.sidebarGradient)
+        .overlay(
+            Rectangle()
+                .fill(AppColors.border)
+                .frame(width: 1)
+                .opacity(0.6),
+            alignment: .trailing
+        )
     }
 }
 
@@ -104,18 +137,18 @@ struct NavigationItemView: View {
         Button(action: action) {
             HStack(spacing: AppSpacing.md) {
                 Image(systemName: item.icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(isSelected ? AppColors.primaryGradient : LinearGradient(colors: [AppColors.textSecondary, AppColors.textTertiary], startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 24)
                 
                 Text(item.rawValue)
-                    .font(AppTypography.headline)
+                    .font(AppTypography.bodyBold)
                     .foregroundColor(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
                 
                 Spacer()
             }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, AppSpacing.md)
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.sm)
             .background(
                 Group {
                     if isSelected {

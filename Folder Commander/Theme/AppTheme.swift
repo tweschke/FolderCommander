@@ -6,94 +6,104 @@
 //
 
 import SwiftUI
-import AppKit
+
+// MARK: - Design Palette
+struct AppPalette {
+    fileprivate static func color(_ hex: String, fallback: Color = .black) -> Color {
+        Color(hex: hex) ?? fallback
+    }
+
+    struct Brand {
+        static let primary = AppPalette.color("#4B6CFF")
+        static let primaryLight = AppPalette.color("#6D8CFF")
+        static let primaryDark = AppPalette.color("#324CCB")
+        static let accent = AppPalette.color("#3B82FF")
+        static let accentLight = AppPalette.color("#5B9BFF")
+        static let accentMagenta = AppPalette.color("#C85DF8")
+    }
+
+    struct Status {
+        static let success = AppPalette.color("#32C46D")
+        static let successLight = AppPalette.color("#4EDB86")
+        static let warning = AppPalette.color("#F4A732")
+        static let destructive = AppPalette.color("#E4555E")
+        static let destructiveLight = AppPalette.color("#F06A73")
+    }
+
+    struct Dark {
+        static let textPrimary = AppPalette.color("#F5F7FA")
+        static let textSecondary = AppPalette.color("#C3CAD6")
+        static let textTertiary = AppPalette.color("#9BA3B2")
+        static let textInactive = AppPalette.color("#6C7482")
+        
+        static let background = AppPalette.color("#0D0F12")
+        static let backgroundLight = AppPalette.color("#12151A")
+        static let secondaryBackground = AppPalette.color("#15181E")
+        static let tertiaryBackground = AppPalette.color("#1B1E25")
+        
+        static let surface = AppPalette.color("#181B21")
+        static let surfaceElevated = AppPalette.color("#1E2229")
+        
+        static let border = AppPalette.color("#2A2F38")
+        static let borderLight = AppPalette.color("#343B46")
+        static let borderGlow = AppPalette.color("#2D3E63")
+    }
+}
 
 // MARK: - Color Theme
 struct AppColors {
-    // Primary colors - purple-blue for icons and accents (kept for branding)
-    static let primary = Color(red: 0.4, green: 0.25, blue: 0.7)
-    static let primaryLight = Color(red: 0.55, green: 0.4, blue: 0.85)
-    static let primaryDark = Color(red: 0.3, green: 0.2, blue: 0.6)
+    // Primary colors - align with dashboard aesthetic
+    static let primary = AppPalette.Brand.primary
+    static let primaryLight = AppPalette.Brand.primaryLight
+    static let primaryDark = AppPalette.Brand.primaryDark
     
-    // Accent colors - light blue for active states
-    static let accent = Color(red: 0.2, green: 0.6, blue: 1.0)
-    static let accentLight = Color(red: 0.4, green: 0.7, blue: 1.0)
-    static let accentMagenta = Color(red: 0.9, green: 0.3, blue: 0.7)
+    // Accent colors - active/interactive
+    static let accent = AppPalette.Brand.accent
+    static let accentLight = AppPalette.Brand.accentLight
+    static let accentMagenta = AppPalette.Brand.accentMagenta
     
     // Success/Positive
-    static let success = Color(red: 0.2, green: 0.7, blue: 0.4)
-    static let successLight = Color(red: 0.3, green: 0.8, blue: 0.5)
+    static let success = AppPalette.Status.success
+    static let successLight = AppPalette.Status.successLight
     
     // Warning
-    static let warning = Color(red: 1.0, green: 0.65, blue: 0.0)
+    static let warning = AppPalette.Status.warning
     
     // Destructive
-    static let destructive = Color(red: 0.9, green: 0.25, blue: 0.3)
-    static let destructiveLight = Color(red: 0.95, green: 0.35, blue: 0.4)
+    static let destructive = AppPalette.Status.destructive
+    static let destructiveLight = AppPalette.Status.destructiveLight
     
-    // Text - adaptive for contrast
-    static let textPrimary = Color.adaptive(
-        light: NSColor(red: 0.1, green: 0.1, blue: 0.15, alpha: 1),
-        dark: NSColor(red: 0.95, green: 0.95, blue: 1.0, alpha: 1)
-    )
-    static let textSecondary = Color.adaptive(
-        light: NSColor(red: 0.4, green: 0.4, blue: 0.45, alpha: 1),
-        dark: NSColor(red: 0.75, green: 0.75, blue: 0.8, alpha: 1)
-    )
-    static let textTertiary = Color.adaptive(
-        light: NSColor(red: 0.6, green: 0.6, blue: 0.65, alpha: 1),
-        dark: NSColor(red: 0.65, green: 0.65, blue: 0.7, alpha: 1)
-    )
-    static let textInactive = Color.adaptive(
-        light: NSColor(red: 0.7, green: 0.7, blue: 0.75, alpha: 1),
-        dark: NSColor(red: 0.5, green: 0.5, blue: 0.55, alpha: 1)
-    )
+    // Text
+    static let textPrimary = AppPalette.Dark.textPrimary
+    static let textSecondary = AppPalette.Dark.textSecondary
+    static let textTertiary = AppPalette.Dark.textTertiary
+    static let textInactive = AppPalette.Dark.textInactive
 
     // Backgrounds
-    static let background = Color.adaptive(
-        light: NSColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1),
-        dark: NSColor(red: 0.08, green: 0.08, blue: 0.12, alpha: 1)
-    )
-    static let backgroundLight = Color.adaptive(
-        light: NSColor.white,
-        dark: NSColor(red: 0.12, green: 0.12, blue: 0.16, alpha: 1)
-    )
-    static let secondaryBackground = Color.adaptive(
-        light: NSColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1),
-        dark: NSColor(red: 0.15, green: 0.15, blue: 0.2, alpha: 1)
-    )
-    static let tertiaryBackground = Color.adaptive(
-        light: NSColor(red: 0.95, green: 0.95, blue: 0.96, alpha: 1),
-        dark: NSColor(red: 0.18, green: 0.18, blue: 0.22, alpha: 1)
-    )
+    static let background = AppPalette.Dark.background
+    static let backgroundLight = AppPalette.Dark.backgroundLight
+    static let secondaryBackground = AppPalette.Dark.secondaryBackground
+    static let tertiaryBackground = AppPalette.Dark.tertiaryBackground
 
     // Surfaces (for cards, panels)
-    static let surface = Color.adaptive(
-        light: NSColor(white: 1, alpha: 0.9),
-        dark: NSColor(red: 0.15, green: 0.15, blue: 0.2, alpha: 0.9)
-    )
-    static let surfaceElevated = Color.adaptive(
-        light: NSColor(white: 1, alpha: 0.95),
-        dark: NSColor(red: 0.18, green: 0.18, blue: 0.23, alpha: 0.95)
-    )
+    static let surface = AppPalette.Dark.surface.opacity(0.96)
+    static let surfaceElevated = AppPalette.Dark.surfaceElevated.opacity(0.98)
 
     // Borders
-    static let border = Color.adaptive(
-        light: NSColor(red: 0.85, green: 0.85, blue: 0.9, alpha: 1),
-        dark: NSColor(red: 0.35, green: 0.35, blue: 0.45, alpha: 1)
-    )
-    static let borderLight = Color.adaptive(
-        light: NSColor(red: 0.9, green: 0.9, blue: 0.95, alpha: 1),
-        dark: NSColor(red: 0.5, green: 0.5, blue: 0.55, alpha: 1)
-    )
-    static let borderGlow = Color.adaptive(
-        light: NSColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 0.3),
-        dark: NSColor(red: 0.4, green: 0.7, blue: 1.0, alpha: 0.25)
-    )
+    static let border = AppPalette.Dark.border
+    static let borderLight = AppPalette.Dark.borderLight
+    static let borderGlow = AppPalette.Dark.borderGlow.opacity(0.35)
 
     // Glow colors for selected states
-    static let glowBlue = Color(red: 0.2, green: 0.6, blue: 1.0)
-    static let glowPurple = Color(red: 0.4, green: 0.25, blue: 0.7)
+    static let glowBlue = AppPalette.Brand.accent
+    static let glowPurple = AppPalette.Brand.primary
+    
+    // Card gradients
+    static let cardGradient = LinearGradient(
+        colors: [surfaceElevated, surface],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 
     // Gradients
     static let primaryGradient = LinearGradient(
@@ -114,17 +124,11 @@ struct AppColors {
         endPoint: .bottomTrailing
     )
 
-    // Background gradients (adapted for both modes)
+    // Background gradients
     static let sidebarGradient = LinearGradient(
         colors: [
-            Color.adaptive(
-                light: NSColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1),
-                dark: NSColor(red: 0.14, green: 0.14, blue: 0.18, alpha: 1)
-            ),
-            Color.adaptive(
-                light: NSColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1),
-                dark: NSColor(red: 0.1, green: 0.1, blue: 0.14, alpha: 1)
-            )
+            AppPalette.Dark.secondaryBackground,
+            AppPalette.Dark.background
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -132,14 +136,8 @@ struct AppColors {
 
     static let contentGradient = LinearGradient(
         colors: [
-            Color.adaptive(
-                light: NSColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1),
-                dark: NSColor(red: 0.1, green: 0.1, blue: 0.14, alpha: 1)
-            ),
-            Color.adaptive(
-                light: NSColor.white,
-                dark: NSColor(red: 0.06, green: 0.06, blue: 0.1, alpha: 1)
-            )
+            AppPalette.Dark.background,
+            AppPalette.Dark.backgroundLight
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -148,14 +146,8 @@ struct AppColors {
     // Selected state gradient
     static let selectedGlowGradient = LinearGradient(
         colors: [
-            Color.adaptive(
-                light: NSColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1),
-                dark: NSColor(red: 0.15, green: 0.2, blue: 0.3, alpha: 1)
-            ),
-            Color.adaptive(
-                light: NSColor(red: 0.85, green: 0.92, blue: 1.0, alpha: 1),
-                dark: NSColor(red: 0.1, green: 0.15, blue: 0.25, alpha: 1)
-            )
+            AppPalette.color("#1B2A44"),
+            AppPalette.color("#152235")
         ],
         startPoint: .leading,
         endPoint: .trailing
@@ -200,9 +192,9 @@ struct AppCornerRadius {
 
 // MARK: - Shadows
 struct AppShadow {
-    static let small = Shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
-    static let medium = Shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    static let large = Shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 8)
+    static let small = Shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
+    static let medium = Shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 6)
+    static let large = Shadow(color: .black.opacity(0.45), radius: 20, x: 0, y: 10)
     
     struct Shadow {
         let color: Color
@@ -219,16 +211,7 @@ extension View {
     }
     
     func cardStyle() -> some View {
-        self
-            .background(
-                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                    .fill(AppColors.surfaceElevated)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                            .stroke(AppColors.border, lineWidth: 1)
-                    )
-            )
-            .appShadow(AppShadow.small)
+        self.dashboardCardStyle()
     }
     
     func glassEffect() -> some View {
@@ -243,18 +226,41 @@ extension View {
             )
     }
     
-    func glassCardStyle() -> some View {
-        self
+    func dashboardCardStyle(isSelected: Bool = false) -> some View {
+        let cornerRadius = AppCornerRadius.large
+        
+        return self
             .background(
-                RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                    .fill(AppColors.surfaceElevated)
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(AppColors.cardGradient)
                     .overlay(
-                        RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                            .stroke(AppColors.border, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(AppColors.selectedGlowGradient)
+                            .opacity(isSelected ? 0.6 : 0)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(
+                                isSelected ? AppColors.accent.opacity(0.6) : AppColors.border,
+                                lineWidth: isSelected ? 1.5 : 1
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(AppColors.borderLight.opacity(0.35), lineWidth: 1)
+                            .blendMode(.screen)
                     )
             )
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-            .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
+            .shadow(
+                color: Color.black.opacity(isSelected ? 0.45 : 0.35),
+                radius: isSelected ? 18 : 12,
+                x: 0,
+                y: 8
+            )
+    }
+    
+    func glassCardStyle() -> some View {
+        self.dashboardCardStyle()
     }
     
     func glowEffect(intensity: CGFloat = 0.3) -> some View {

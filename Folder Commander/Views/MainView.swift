@@ -125,14 +125,12 @@ struct TemplateDetailView: View {
                             .font(AppTypography.title3)
                             .foregroundColor(AppColors.textPrimary)
                     }
-                    .padding(.horizontal, AppSpacing.lg)
                     
                     // Show children of rootItem directly, not rootItem itself
                     if let children = template.rootItem.children, !children.isEmpty {
                         VStack(alignment: .leading, spacing: AppSpacing.sm) {
                             ForEach(children) { child in
                                 TemplateTreeView(item: child, appSettings: appSettings)
-                                    .padding(.horizontal, AppSpacing.lg)
                             }
                         }
                     } else {
@@ -152,6 +150,9 @@ struct TemplateDetailView: View {
                         }
                     }
                 }
+                .padding(AppSpacing.lg)
+                .dashboardCardStyle()
+                .padding(.horizontal, AppSpacing.lg)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
