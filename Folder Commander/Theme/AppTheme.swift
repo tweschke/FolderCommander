@@ -267,4 +267,15 @@ extension View {
         self
             .shadow(color: AppColors.glowBlue.opacity(intensity * 0.2), radius: 8, x: 0, y: 0)
     }
+    
+    /// Centers this view vertically in a toolbar row (e.g. Cancel/Done, Cancel/Save).
+    /// Use on toolbar button content so it aligns to the middle of the bar.
+    func toolbarItemCentered() -> some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            self
+            Spacer(minLength: 0)
+        }
+        .frame(maxHeight: .infinity)
+    }
 }

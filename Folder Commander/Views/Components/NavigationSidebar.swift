@@ -10,7 +10,7 @@ import SwiftUI
 enum NavigationItem: String, CaseIterable, Identifiable {
     case templates = "Templates"
     case createProject = "Create Project"
-    case settings = "Settings"
+    case settings = "Backups"
     
     var id: String { rawValue }
     
@@ -21,7 +21,7 @@ enum NavigationItem: String, CaseIterable, Identifiable {
         case .createProject:
             return "folder.badge.plus"
         case .settings:
-            return "gearshape.fill"
+            return "externaldrive.fill"
         }
     }
     
@@ -41,27 +41,9 @@ struct NavigationSidebar: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                HStack(spacing: AppSpacing.sm) {
-                    IconChip(systemName: "folder.fill", size: 30)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Folder Commander")
-                            .font(AppTypography.headline)
-                            .foregroundColor(AppColors.textPrimary)
-                        
-                        Text("Workspace")
-                            .font(AppTypography.caption)
-                            .foregroundColor(AppColors.textSecondary)
-                    }
-                }
-            }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.top, AppSpacing.lg)
-            .padding(.bottom, AppSpacing.sm)
-            
             SectionHeader(title: "Workspace", systemImage: "square.grid.2x2", compact: true)
                 .padding(.horizontal, AppSpacing.md)
+                .padding(.top, AppSpacing.lg)
                 .padding(.bottom, AppSpacing.sm)
             
             // Navigation items (main)
@@ -129,7 +111,7 @@ struct NavigationItemView: View {
         case .createProject:
             return "Opens the project creation wizard"
         case .settings:
-            return "Opens application settings"
+            return "Opens backup and restore tools"
         }
     }
     

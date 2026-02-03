@@ -28,12 +28,12 @@ struct AppMenuCommands: Commands {
         }
         
         CommandGroup(replacing: .importExport) {
-            Button("Import Template...") {
+            Button("Import Templates...") {
                 NotificationCenter.default.post(name: .importTemplate, object: nil)
             }
             .keyboardShortcut("i", modifiers: [.command, .shift])
             
-            Button("Export Template...") {
+            Button("Export Templates...") {
                 NotificationCenter.default.post(name: .exportTemplate, object: nil)
             }
             .keyboardShortcut("e", modifiers: [.command, .shift])
@@ -59,8 +59,7 @@ struct AppMenuCommands: Commands {
         // Help Menu
         CommandGroup(replacing: .help) {
             Button("Folder Commander Help") {
-                // Open help documentation
-                if let url = URL(string: "https://help.foldercommander.app") {
+                if let url = URL(string: "https://help.foldercommander.app"), url.scheme == "https" {
                     NSWorkspace.shared.open(url)
                 }
             }
@@ -75,7 +74,7 @@ struct AppMenuCommands: Commands {
         
         // Settings Menu (macOS 13+)
         CommandGroup(after: .appSettings) {
-            Button("Settings...") {
+            Button("Backups...") {
                 NotificationCenter.default.post(name: .openSettings, object: nil)
             }
             .keyboardShortcut(",", modifiers: .command)

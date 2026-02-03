@@ -228,12 +228,14 @@ struct IconBrowserSheet: View {
                         dismiss()
                     }
                     .tertiaryButton()
+                    .toolbarItemCentered()
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }
                     .primaryButton()
+                    .toolbarItemCentered()
                 }
             }
         }

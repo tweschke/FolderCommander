@@ -33,50 +33,16 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 // Header
                 VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text("Settings")
+                    Text("Backups")
                         .font(AppTypography.largeTitle)
                         .foregroundColor(AppColors.textPrimary)
 
-                    Text("Customize your Folder Commander experience")
+                    Text("Import or export template backups")
                         .font(AppTypography.subheadline)
                         .foregroundColor(AppColors.textSecondary)
                 }
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.lg)
-
-                // Interface Section
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    HStack(spacing: AppSpacing.sm) {
-                        Image(systemName: "moon.stars.fill")
-                            .foregroundStyle(AppColors.primaryGradient)
-                            .font(.system(size: 18))
-
-                        Text("Interface")
-                            .font(AppTypography.title3)
-                            .foregroundColor(AppColors.textPrimary)
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        HStack {
-                            Text("Theme")
-                                .font(AppTypography.headline)
-                                .foregroundColor(AppColors.textPrimary)
-
-                            Spacer()
-
-                            Text("Dark (default)")
-                                .font(AppTypography.subheadline)
-                                .foregroundColor(AppColors.textSecondary)
-                        }
-
-                        Text("The dark dashboard palette is now the default for the entire app.")
-                            .font(AppTypography.caption)
-                            .foregroundColor(AppColors.textSecondary)
-                    }
-                }
-                .padding(AppSpacing.lg)
-                .dashboardCardStyle()
-                .padding(.horizontal, AppSpacing.lg)
 
                 // Templates Section (Import/Export)
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -101,6 +67,8 @@ struct SettingsView: View {
                             }
                             .buttonStyle(SecondaryButtonStyle())
                             .help("Import templates from a JSON file")
+                            .accessibilityLabel("Import templates")
+                            .accessibilityHint("Opens a dialog to choose a JSON file to import")
 
                             Button(action: exportAllTemplates) {
                                 Label("Export All Templates", systemImage: "square.and.arrow.up")
@@ -108,6 +76,8 @@ struct SettingsView: View {
                             .buttonStyle(SecondaryButtonStyle())
                             .help("Save all templates to a JSON file")
                             .disabled(templateStore.templates.isEmpty)
+                            .accessibilityLabel("Export all templates")
+                            .accessibilityHint("Saves all templates to a JSON file")
                         }
                     }
                 }
@@ -119,7 +89,7 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(AppColors.contentGradient)
         .standardToolbar(templateStore: templateStore, appSettings: settings)
-        .navigationTitle("Folder Commander")
+        .navigationTitle("Backups")
         .fileImporter(
             isPresented: $showingImport,
             allowedContentTypes: [.json],

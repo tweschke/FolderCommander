@@ -142,7 +142,7 @@ struct ColorBrowserSheet: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: AppSpacing.lg) {
+            VStack(spacing: 0) {
                 // Preset colors grid
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     Text("Preset Colors")
@@ -198,9 +198,9 @@ struct ColorBrowserSheet: View {
                 }
                 .padding(AppSpacing.lg)
                 
-                Spacer()
+                Spacer(minLength: 0)
             }
-            .background(AppColors.contentGradient)
+            .background(AppColors.background)
             .navigationTitle("Select Folder Color")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -208,16 +208,18 @@ struct ColorBrowserSheet: View {
                         dismiss()
                     }
                     .tertiaryButton()
+                    .toolbarItemCentered()
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }
                     .primaryButton()
+                    .toolbarItemCentered()
                 }
             }
         }
-        .frame(width: 500, height: 450)
+        .frame(width: 500, height: 520)
     }
 }
 

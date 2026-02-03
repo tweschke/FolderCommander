@@ -18,18 +18,11 @@ struct TemplateEditorView: View {
     
     @State private var templateName: String
     @State private var rootItem: FolderItem
-    @State private var editorMode: EditorMode = .visual
-    @State private var textInput: String = ""
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var selectedItem: FolderItem?
     @State private var editingItem: FolderItem?
     @State private var showingItemEditor = false
-    
-    enum EditorMode {
-        case visual
-        case text
-    }
     
     init(templateStore: TemplateStore, editingTemplate: Template? = nil, appSettings: AppSettings) {
         self.templateStore = templateStore
@@ -39,12 +32,10 @@ struct TemplateEditorView: View {
         if let template = editingTemplate {
             _templateName = State(initialValue: template.name)
             _rootItem = State(initialValue: template.rootItem)
-            _textInput = State(initialValue: Self.itemToText(template.rootItem))
         } else {
             _templateName = State(initialValue: "")
             // Create root container (not shown in UI, just holds children)
             _rootItem = State(initialValue: FolderItem.folder(name: "", children: []))
-            _textInput = State(initialValue: "")
         }
     }
     
@@ -90,43 +81,22 @@ struct TemplateEditorView: View {
                             y: 2
                         )
                         .appShadow(AppShadow.small)
+                        .accessibilityLabel("Template name")
+                        .accessibilityHint("Enter a name for this template")
                 }
                 .padding(AppSpacing.lg)
                 .dashboardCardStyle()
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.lg)
                 
-                // Mode selector
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    SectionHeader(
-                        title: "Editor Mode",
-                        systemImage: "slider.horizontal.3",
-                        subtitle: "Choose visual or text input"
-                    )
-                    
-                    Picker("Editor Mode", selection: $editorMode) {
-                        Label("Visual Editor", systemImage: "square.grid.2x2").tag(EditorMode.visual)
-                        Label("Text Input", systemImage: "text.alignleft").tag(EditorMode.text)
-                    }
-                    .pickerStyle(.segmented)
-                    .tint(AppColors.accent)
-                }
-                .padding(AppSpacing.lg)
-                .dashboardCardStyle()
-                .padding(.horizontal, AppSpacing.lg)
-                
                 // Editor content
-                if editorMode == .visual {
-                    VisualEditorView(
-                        rootItem: $rootItem,
-                        selectedItem: $selectedItem,
-                        editingItem: $editingItem,
-                        showingItemEditor: $showingItemEditor,
-                        appSettings: appSettings
-                    )
-                } else {
-                    TextEditorView(textInput: $textInput, rootItem: $rootItem)
-                }
+                VisualEditorView(
+                    rootItem: $rootItem,
+                    selectedItem: $selectedItem,
+                    editingItem: $editingItem,
+                    showingItemEditor: $showingItemEditor,
+                    appSettings: appSettings
+                )
             }
             .background(AppColors.contentGradient)
             .navigationTitle(editingTemplate == nil ? "New Template" : "Edit Template")
@@ -136,6 +106,7 @@ struct TemplateEditorView: View {
                         dismiss()
                     }
                     .tertiaryButton()
+                    .toolbarItemCentered()
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(action: { saveTemplate() }) {
@@ -146,6 +117,7 @@ struct TemplateEditorView: View {
                     }
                     .primaryButton(enabled: !templateName.isEmpty)
                     .disabled(templateName.isEmpty)
+                    .toolbarItemCentered()
                 }
             }
             .alert("Error", isPresented: $showingError) {
@@ -158,29 +130,10 @@ struct TemplateEditorView: View {
             }
         }
         .frame(minWidth: 800)
-        .frame(minHeight: 700)
+        .frame(minHeight: 760)
     }
     
     private func saveTemplate() {
-        if editorMode == .text {
-            // Parse text input and wrap in root container
-            do {
-                let parsedItem = try TemplateParser.parse(textInput)
-                // Wrap parsed item in a root container (empty name)
-                if parsedItem.name.isEmpty {
-                    // If parsed item has no name, use its children directly
-                    rootItem = FolderItem.folder(name: "", children: parsedItem.children ?? [])
-                } else {
-                    // If parsed item has a name, wrap it in the root container
-                    rootItem = FolderItem.folder(name: "", children: [parsedItem])
-                }
-            } catch {
-                errorMessage = error.localizedDescription
-                showingError = true
-                return
-            }
-        }
-        
         let template = Template(
             id: editingTemplate?.id ?? UUID(),
             name: templateName,
@@ -198,24 +151,6 @@ struct TemplateEditorView: View {
         dismiss()
     }
     
-    // Convert FolderItem to text format for text editor
-    private static func itemToText(_ item: FolderItem) -> String {
-        var lines: [String] = []
-        func buildText(_ item: FolderItem, level: Int = 0) {
-            // Skip root item if it has no name (it's just a container)
-            if !item.name.isEmpty || level > 0 {
-                let indent = String(repeating: "  ", count: level)
-                lines.append("\(indent)\(item.name)")
-            }
-            if let children = item.children {
-                for child in children {
-                    buildText(child, level: item.name.isEmpty ? level : level + 1)
-                }
-            }
-        }
-        buildText(item)
-        return lines.joined(separator: "\n")
-    }
 }
 
 struct VisualEditorView: View {
@@ -314,10 +249,10 @@ struct VisualEditorView: View {
                 .destructiveButton(enabled: selectedItem != nil)
                 .disabled(selectedItem == nil)
                 
-                if let selected = selectedItem {
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        SectionHeader(title: "Selection", systemImage: "cursorarrow.rays", compact: true)
-                        
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    SectionHeader(title: "Selection", systemImage: "cursorarrow.rays", compact: true)
+                    
+                    if let selected = selectedItem {
                         HStack(spacing: AppSpacing.sm) {
                             Image(systemName: selected.type == .folder ? "folder.fill" : "doc.fill")
                                 .foregroundStyle(
@@ -339,11 +274,25 @@ struct VisualEditorView: View {
                         Text(selected.type == .folder ? "Folder" : "File")
                             .font(AppTypography.caption)
                             .foregroundColor(AppColors.textSecondary)
+                    } else {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "cursorarrow.rays")
+                                .foregroundStyle(AppColors.textTertiary)
+                                .font(.system(size: 18, weight: .semibold))
+                            
+                            Text("No item selected")
+                                .font(AppTypography.caption)
+                                .foregroundColor(AppColors.textSecondary)
+                        }
+                        
+                        Text("Select a folder or file to see details.")
+                            .font(AppTypography.caption)
+                            .foregroundColor(AppColors.textTertiary)
                     }
-                    .padding(AppSpacing.md)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .dashboardCardStyle()
                 }
+                .padding(AppSpacing.md)
+                .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+                .dashboardCardStyle()
                 
                 Spacer()
             }
@@ -403,132 +352,149 @@ struct EditableTreeView: View {
     @Binding var rootItem: FolderItem
     @ObservedObject var appSettings: AppSettings
     @State private var isExpanded = true
+    let level: Int
+
+    private let disclosureIndicatorWidth: CGFloat = 12
+
+    init(
+        item: FolderItem,
+        selectedItem: Binding<FolderItem?>,
+        editingItem: Binding<FolderItem?>,
+        showingItemEditor: Binding<Bool>,
+        rootItem: Binding<FolderItem>,
+        appSettings: AppSettings,
+        level: Int = 0
+    ) {
+        self.item = item
+        self._selectedItem = selectedItem
+        self._editingItem = editingItem
+        self._showingItemEditor = showingItemEditor
+        self._rootItem = rootItem
+        self.appSettings = appSettings
+        self.level = level
+    }
     
     var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            treeRow
+                .padding(.leading, CGFloat(level) * AppSpacing.md)
+
+            if item.type == .folder, isExpanded, let children = item.children {
+                ForEach(children) { child in
+                    EditableTreeView(
+                        item: child,
+                        selectedItem: $selectedItem,
+                        editingItem: $editingItem,
+                        showingItemEditor: $showingItemEditor,
+                        rootItem: $rootItem,
+                        appSettings: appSettings,
+                        level: level + 1
+                    )
+                }
+            }
+        }
+    }
+
+    private var treeRow: some View {
+        HStack(spacing: AppSpacing.sm) {
+            disclosureIndicator
+            rowContent
+        }
+    }
+
+    @ViewBuilder
+    private var disclosureIndicator: some View {
         if item.type == .folder {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                if let children = item.children {
-                        ForEach(children) { child in
-                            EditableTreeView(
-                                item: child,
-                                selectedItem: $selectedItem,
-                                editingItem: $editingItem,
-                                showingItemEditor: $showingItemEditor,
-                                rootItem: $rootItem,
-                                appSettings: appSettings
-                            )
-                            .padding(.leading, 16)
-                        }
-                }
-            } label: {
-                HStack(spacing: AppSpacing.sm) {
-                    // Use custom icon if available, otherwise use default folder icon
-                    let iconName = item.getIconName() ?? (isExpanded ? "folder.fill" : "folder")
-                    Image(systemName: iconName)
-                        .foregroundStyle(
-                            item.color != nil
-                                ? AnyShapeStyle(item.getColor() ?? appleFolderBlue)
-                                : AnyShapeStyle(appleFolderBlue)
-                        )
-                        .font(.system(size: 18, weight: .semibold))
-                    
-                    Text(item.name)
-                        .font(AppTypography.body)
-                        .foregroundColor(AppColors.textPrimary)
-                }
-                .padding(.vertical, AppSpacing.sm)
-                .padding(.horizontal, AppSpacing.sm)
-                .background(
+            Button(action: { isExpanded.toggle() }) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .buttonStyle(.plain)
+            .frame(width: disclosureIndicatorWidth, alignment: .center)
+        } else {
+            Color.clear
+                .frame(width: disclosureIndicatorWidth, height: 1)
+        }
+    }
+
+    private var rowContent: some View {
+        HStack(spacing: AppSpacing.sm) {
+            rowIcon
+            Text(item.name)
+                .font(AppTypography.body)
+                .foregroundColor(AppColors.textPrimary)
+        }
+        .padding(.vertical, AppSpacing.sm)
+        .padding(.horizontal, AppSpacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: AppCornerRadius.small)
+                .fill(selectedItem?.id == item.id ? AnyShapeStyle(AppColors.selectedGlowGradient) : AnyShapeStyle(Color.clear))
+                .overlay(
                     RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                        .fill(selectedItem?.id == item.id ? AnyShapeStyle(AppColors.selectedGlowGradient) : AnyShapeStyle(Color.clear))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                                .stroke(
-                                    selectedItem?.id == item.id ? AppColors.accent.opacity(0.3) : Color.clear,
-                                    lineWidth: 1
-                                )
+                        .stroke(
+                            selectedItem?.id == item.id ? AppColors.accent.opacity(0.3) : Color.clear,
+                            lineWidth: 1
                         )
                 )
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedItem = item
-                    // Expand when selected
-                    isExpanded = true
-                }
-                .contextMenu {
-                    Button(action: {
-                        selectedItem = item
-                        isExpanded = true
-                        addChild(to: item)
-                    }) {
-                        Label("Add Child", systemImage: "plus.circle")
-                    }
-                    Button(action: {
-                        editingItem = item
-                        showingItemEditor = true
-                    }) {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    if item.id != rootItem.id {
-                        Button(role: .destructive, action: {
-                            deleteItem(item, from: &rootItem)
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            selectedItem = item
+            if item.type == .folder {
+                isExpanded = true
             }
-            .tint(AppColors.textPrimary)
-        } else {
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: "doc.fill")
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                AppColors.textPrimary.opacity(0.8),
-                                AppColors.textSecondary.opacity(0.9)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .font(.system(size: 18, weight: .semibold))
-                
-                Text(item.name)
-                    .font(AppTypography.body)
-                    .foregroundColor(AppColors.textPrimary)
-            }
-            .padding(.leading, AppSpacing.lg)
-            .padding(.vertical, AppSpacing.sm)
-            .padding(.horizontal, AppSpacing.sm)
-            .background(
-                RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                    .fill(selectedItem?.id == item.id ? AnyShapeStyle(AppColors.selectedGlowGradient) : AnyShapeStyle(Color.clear))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppCornerRadius.small)
-                            .stroke(
-                                selectedItem?.id == item.id ? AppColors.accent.opacity(0.3) : Color.clear,
-                                lineWidth: 1
-                            )
-                    )
-            )
-            .contentShape(Rectangle())
-            .onTapGesture {
-                selectedItem = item
-            }
-            .contextMenu {
+        }
+        .contextMenu {
+            if item.type == .folder {
                 Button(action: {
-                    editingItem = item
-                    showingItemEditor = true
+                    selectedItem = item
+                    isExpanded = true
+                    addChild(to: item)
                 }) {
-                    Label("Edit", systemImage: "pencil")
+                    Label("Add Child", systemImage: "plus.circle")
                 }
+            }
+            Button(action: {
+                editingItem = item
+                showingItemEditor = true
+            }) {
+                Label("Edit", systemImage: "pencil")
+            }
+            if item.id != rootItem.id {
                 Button(role: .destructive, action: {
                     deleteItem(item, from: &rootItem)
                 }) {
                     Label("Delete", systemImage: "trash")
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var rowIcon: some View {
+        if item.type == .folder {
+            let iconName = item.getIconName() ?? (isExpanded ? "folder.fill" : "folder")
+            Image(systemName: iconName)
+                .foregroundStyle(
+                    item.color != nil
+                        ? AnyShapeStyle(item.getColor() ?? appleFolderBlue)
+                        : AnyShapeStyle(appleFolderBlue)
+                )
+                .font(.system(size: 18, weight: .semibold))
+        } else {
+            Image(systemName: "doc.fill")
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [
+                            AppColors.textPrimary.opacity(0.8),
+                            AppColors.textSecondary.opacity(0.9)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .font(.system(size: 18, weight: .semibold))
         }
     }
     
@@ -557,47 +523,6 @@ struct EditableTreeView: View {
             root.children = children.filter { $0.id != item.id }
             for index in root.children!.indices {
                 deleteItem(item, from: &root.children![index])
-            }
-        }
-    }
-}
-
-struct TextEditorView: View {
-    @Binding var textInput: String
-    @Binding var rootItem: FolderItem
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            SectionHeader(
-                title: "Text Input",
-                systemImage: "text.alignleft",
-                subtitle: "Use indentation for nesting"
-            )
-            
-            TextEditor(text: $textInput)
-                .font(.system(.body, design: .monospaced))
-                .padding(AppSpacing.md)
-                .background(
-                    RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                        .fill(AppColors.tertiaryBackground)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppCornerRadius.medium)
-                                .stroke(AppColors.border, lineWidth: 1)
-                        )
-                )
-        }
-        .padding(AppSpacing.lg)
-        .dashboardCardStyle()
-        .padding(.horizontal, AppSpacing.lg)
-        .padding(.bottom, AppSpacing.lg)
-        .background(AppColors.contentGradient)
-        .onChange(of: textInput) { _, newValue in
-            // Defer the update to avoid publishing changes during view updates
-            Task { @MainActor in
-                // Try to parse and update rootItem in real-time
-                if let parsed = try? TemplateParser.parse(newValue) {
-                    rootItem = parsed
-                }
             }
         }
     }
@@ -727,6 +652,7 @@ struct ItemEditorView: View {
                         dismiss()
                     }
                     .tertiaryButton()
+                    .toolbarItemCentered()
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(action: { saveItem() }) {
@@ -737,6 +663,7 @@ struct ItemEditorView: View {
                     }
                     .primaryButton(enabled: !name.isEmpty)
                     .disabled(name.isEmpty)
+                    .toolbarItemCentered()
                 }
             }
         }

@@ -122,6 +122,8 @@ struct ProjectCreationView: View {
                                 }
                             }
                             .secondaryButton()
+                            .accessibilityLabel("Show in Finder")
+                            .accessibilityHint("Reveals the project folder in Finder")
                             
                             Button(action: {
                                 dismiss()
@@ -206,7 +208,7 @@ struct ProjectCreationView: View {
                     .padding(.bottom, AppSpacing.lg)
                 }
             }
-            .navigationTitle("Folder Commander")
+            .navigationTitle("Create Project")
             .errorAlert()
             .standardToolbar(templateStore: templateStore, appSettings: appSettings)
         }
@@ -303,6 +305,9 @@ struct ProjectCreationView: View {
                                 .dashboardCardStyle(isSelected: isSelected)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Template \(template.name)")
+                            .accessibilityHint(isSelected ? "Selected template" : "Select this template")
+                            .accessibilityAddTraits(isSelected ? .isSelected : [])
                         }
                     }
                     .padding(.vertical, AppSpacing.sm)
@@ -424,6 +429,8 @@ struct ProjectCreationView: View {
                 }
             }
             .primaryButton()
+            .accessibilityLabel("Choose Folder")
+            .accessibilityHint("Opens a dialog to select where to create the project")
         }
         .padding(AppSpacing.lg)
         .dashboardCardStyle()

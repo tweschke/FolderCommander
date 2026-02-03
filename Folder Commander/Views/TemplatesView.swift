@@ -130,7 +130,7 @@ struct TemplatesView: View {
             .padding(.horizontal, AppSpacing.lg)
             .padding(.vertical, AppSpacing.lg)
         }
-        .navigationTitle("Folder Commander")
+        .navigationTitle("Templates")
         .standardToolbar(templateStore: templateStore, appSettings: appSettings)
         .sheet(item: $editingTemplate) { template in
             TemplateEditorView(templateStore: templateStore, editingTemplate: template, appSettings: appSettings)
