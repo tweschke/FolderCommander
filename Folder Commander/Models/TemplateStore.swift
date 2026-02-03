@@ -56,7 +56,15 @@ class TemplateStore: ObservableObject {
         templates.remove(atOffsets: indexSet)
         saveTemplates()
     }
-    
+
+    /// Removes the first template whose name matches. Used when overriding on import.
+    func deleteTemplate(named name: String) {
+        if let index = templates.firstIndex(where: { $0.name == name }) {
+            templates.remove(at: index)
+            saveTemplates()
+        }
+    }
+
     // MARK: - Export/Import
     
     func exportTemplate(_ template: Template) -> Data? {
