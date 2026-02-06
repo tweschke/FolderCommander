@@ -8,6 +8,23 @@
 import SwiftUI
 import AppKit
 
+/// Shared opener so the Window menu can reopen the main window when it was closed.
+enum MainWindowOpener {
+    static var openMainWindow: (() -> Void)?
+}
+
+/// View that registers the main-window reopen action with the opener (used inside the main WindowGroup).
+struct MainWindowOpenerSetter: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Color.clear
+            .onAppear {
+                MainWindowOpener.openMainWindow = { openWindow(id: "main") }
+            }
+    }
+}
+
 /// Standard macOS menu bar commands with keyboard shortcuts
 struct AppMenuCommands: Commands {
     var body: some Commands {
@@ -56,6 +73,14 @@ struct AppMenuCommands: Commands {
             // Toolbar visibility can be added if needed
         }
         
+        // Window Menu — list main window and allow reopening when closed
+        CommandGroup(after: .windowArrangement) {
+            Button("Show Main Window") {
+                MainWindowOpener.openMainWindow?()
+            }
+            .keyboardShortcut("0", modifiers: .command)
+        }
+
         // Help Menu
         CommandGroup(replacing: .help) {
             Button("Folder Commander Help") {

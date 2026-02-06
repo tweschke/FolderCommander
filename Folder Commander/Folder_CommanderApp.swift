@@ -13,9 +13,10 @@ struct Folder_CommanderApp: App {
     @StateObject private var appSettings = AppSettings()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             ContentView(appSettings: appSettings)
                 .preferredColorScheme(.dark)
+                .background(MainWindowOpenerSetter())
                 .onAppear {
                     if let app = NSApp {
                         app.appearance = NSAppearance(named: .darkAqua)
